@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#fdf6ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PomodoroCat">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>PomodoroCat</title>
+<style>
+  :root {
+    --papel: #fdf6ec; --cartao: #fffaf3; --linha: #5a3e36; --suave: #9b8578; --trilho: #f1e4d3;
+    --rosa: #f7bfcb; --rosa2: #f09cb0; --verde: #cde9c2; --azul: #cfe3f5; --amarelo: #fbe7a6; --lilas: #e4d9f4;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--papel); color: var(--linha);
+    font-family: 'Fredoka', 'Nunito', system-ui, sans-serif; -webkit-user-select: none; user-select: none; }
+  body { background-image: radial-gradient(#f2e3cf 1.3px, transparent 1.4px); background-size: 18px 18px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .ic { width: 20px; height: 20px; flex: none; }
+
+  #app { height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px;
+    padding: calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 10px); }
+  #app[hidden] { display: none; }
+
+  #topo { display: flex; align-items: center; gap: 8px; }
+  .pilula { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px 0 8px; background: var(--cartao);
+    border: 2.5px solid var(--linha); border-radius: 999px; box-shadow: 0 3px 0 var(--linha); font-weight: 600; font-size: 18px; }
+  .pilula .ic { width: 24px; height: 24px; }
+  #pNivel { flex: 1; padding-left: 14px; gap: 10px; }
+  #pNivel b { font-weight: 600; white-space: nowrap; }
+  .barra { flex: 1; display: block; height: 12px; border-radius: 99px; background: var(--trilho); border: 2px solid var(--linha); overflow: hidden; }
+  .barra i { display: block; height: 100%; background: var(--verde); border-right: 2px solid var(--linha); transition: width .4s; }
+  .redondo { width: 42px; height: 42px; flex: none; display: grid; place-items: center; padding: 0; border-radius: 50%;
+    border: 2.5px solid var(--linha); background: var(--cartao); box-shadow: 0 3px 0 var(--linha); }
+  .redondo .ic { width: 26px; height: 26px; }
+  .redondo:active, .pilula:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--linha); }
+
+  #palco { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  #tela { display: block; touch-action: manipulation; }
+
+  #cartao { background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 22px; box-shadow: 0 4px 0 var(--linha);
+    padding: 10px 14px 14px; text-align: center; }
+  #alerta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;
+    padding: 6px 6px 6px 12px; border: 2px dashed var(--rosa2); border-radius: 14px; background: #fdecef; font-size: 14px; font-weight: 500; text-align: left; }
+  #alerta[hidden] { display: none; }
+  #alerta .grupo { display: flex; gap: 6px; flex: none; }
+  #alerta .bt { padding: 6px 10px; font-size: 14px; border-radius: 12px; box-shadow: 0 3px 0 var(--linha); }
+  #fase { font-size: 14px; color: var(--suave); font-weight: 500; min-height: 1.2em; }
+  #tempo { font-size: 48px; font-weight: 600; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+  .trilho { height: 10px; margin: 6px 4px 8px; border-radius: 99px; background: var(--trilho); border: 2px solid var(--linha); overflow: hidden; }
+  #progresso { height: 100%; width: 0; background: var(--rosa2); }
+  #cartao[data-fase="pausa"] #progresso { background: #9fd39a; }
+  #tarefaAtual { display: inline-flex; max-width: 100%; margin: 0 0 8px; padding: 3px 10px; border: 2px dashed #e2cfb8; border-radius: 99px;
+    background: none; font-size: 13px; font-weight: 500; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #botoes { display: flex; gap: 8px; justify-content: center; }
+  #botoes .bt { flex: 1; max-width: 220px; white-space: nowrap; }
+
+  .bt { font-weight: 600; font-size: 16px; padding: 10px 16px; background: var(--cartao); border: 2.5px solid var(--linha);
+    border-radius: 16px; box-shadow: 0 4px 0 var(--linha); transition: transform .08s, box-shadow .08s; }
+  .bt:active:not([disabled]) { transform: translateY(3px); box-shadow: 0 1px 0 var(--linha); }
+  .bt.rosa { background: var(--rosa); } .bt.verde { background: var(--verde); } .bt.amarelo { background: var(--amarelo); }
+  .bt.perigo { background: #fde0e0; }
+  .bt[disabled] { opacity: .45; cursor: default; box-shadow: 0 2px 0 var(--linha); }
+  .bt.certeza { background: #fbd0d0; }
+
+  #nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  #nav button { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; padding: 7px 2px 5px;
+    font-size: 13px; font-weight: 600; background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 18px; box-shadow: 0 3px 0 var(--linha); }
+  #nav button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px; }
+  #nav button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--linha); }
+  #nav .ic { width: 30px; height: 30px; }
+
+  /* folha de baixo */
+  #folha { position: fixed; inset: 0; z-index: 10; display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(90,62,54,.32); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  #folha.aberta { opacity: 1; pointer-events: auto; }
+  .folha { width: 100%; max-width: 480px; max-height: 86dvh; overflow: auto; overscroll-behavior: contain;
+    padding: 14px 16px calc(env(safe-area-inset-bottom) + 20px); background: var(--papel); border: 2.5px solid var(--linha); border-bottom: 0;
+    border-radius: 26px 26px 0 0; transform: translateY(40px); transition: transform .28s cubic-bezier(.2,.9,.3,1.15); }
+  #folha.aberta .folha { transform: none; }
+  .folha header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .folha h2 { margin: 0; font-size: 23px; font-weight: 600; }
+  .folha h3 { margin: 18px 0 8px; font-size: 15px; font-weight: 600; color: var(--suave); }
+  .folha p { margin: 6px 0; line-height: 1.4; }
+  .x { width: 38px; height: 38px; flex: none; border-radius: 50%; border: 2.5px solid var(--linha); background: var(--cartao); font-size: 16px; font-weight: 600; }
+  .suave { color: var(--suave); font-size: 14px; }
+  .saldo { display: flex; align-items: center; gap: 10px; margin: 8px 0 12px; font-size: 15px; }
+  .saldo .barra { max-width: 110px; }
+  .m { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; white-space: nowrap; }
+  .m .ic { width: 18px; height: 18px; }
+
+  .abas { display: flex; gap: 6px; margin: 12px 0; }
+  .abas button { flex: 1; padding: 8px 4px; font-weight: 600; font-size: 14px; background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 14px; }
+  .abas .on { background: var(--rosa); }
+
+  .grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; padding: 8px 5px 9px;
+    background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 18px; box-shadow: 0 3px 0 var(--linha); text-align: center; }
+  .item b { font-size: 13px; font-weight: 600; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; }
+  .item small { font-size: 11.5px; color: var(--suave); }
+  .item .emoji { font-size: 38px; line-height: 1.15; font-family: "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif; }
+  .item canvas { display: block; }
+  .item.trancado { opacity: .5; }
+  .item.usando { background: #eef8ea; }
+  .item .acao { margin-top: 2px; padding: 5px 10px; font-size: 13px; border-radius: 12px; box-shadow: 0 2px 0 var(--linha); border-width: 2px; }
+  button.item:active:not(.trancado) { transform: translateY(2px); box-shadow: 0 1px 0 var(--linha); }
+
+  .medidor, .linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 2px dotted #eadbc6; font-size: 15px; }
+  .medidor .barra { max-width: 55%; }
+  .cuidados { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cuidados .bt { font-size: 14px; padding: 9px 8px; }
+
+  .nova { display: flex; gap: 8px; margin: 12px 0; }
+  .nova input { flex: 1; min-width: 0; }
+  input[type=text] { width: 100%; font: inherit; font-size: 17px; padding: 10px 14px; color: var(--linha); background: var(--cartao);
+    border: 2.5px solid var(--linha); border-radius: 14px; outline: none; -webkit-user-select: text; user-select: text; }
+  input[type=text]:focus { box-shadow: 0 0 0 3px var(--rosa); }
+  .tarefas { list-style: none; margin: 0; padding: 0; }
+  .tarefas li { display: flex; align-items: center; gap: 8px; padding: 8px 4px; border-bottom: 2px dotted #eadbc6; }
+  .tarefas li.atual { background: #fdecef; border-radius: 12px; }
+  .tarefas .txt { flex: 1; min-width: 0; font-size: 15px; overflow-wrap: anywhere; }
+  .feitas .txt { text-decoration: line-through; color: var(--suave); }
+  .check { width: 26px; height: 26px; flex: none; padding: 0; border-radius: 9px; border: 2.5px solid var(--linha); background: var(--cartao); font-size: 14px; }
+  .check.on { background: var(--verde); }
+  .check.on::after { content: '✓'; font-weight: 700; }
+  .mini { flex: none; width: 32px; height: 32px; padding: 0; border: 0; background: none; font-size: 17px; }
+  .pomos { font-size: 13px; color: var(--suave); white-space: nowrap; }
+  .vazio { text-align: center; color: var(--suave); padding: 18px 0; }
+
+  .chave { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 2px dotted #eadbc6; font-size: 16px; cursor: pointer; }
+  .chave small { display: block; font-size: 12.5px; color: var(--suave); margin-top: 2px; }
+  .chave input { position: absolute; opacity: 0; pointer-events: none; }
+  .chave i { position: relative; flex: none; width: 50px; height: 30px; border-radius: 99px; background: #eadccb; border: 2.5px solid var(--linha); transition: background .2s; }
+  .chave i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid var(--linha); transition: left .2s; }
+  .chave input:checked + i { background: var(--verde); }
+  .chave input:checked + i::after { left: 22px; }
+  .trancada { opacity: .6; }
+
+  .novidades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+  .novidades .item b { font-size: 11.5px; min-height: 0; }
+  .festa { text-align: center; }
+  .festa .grande { font-size: 44px; font-weight: 700; margin: 4px 0; }
+
+  /* adoção */
+  #adocao { position: fixed; inset: 0; z-index: 5; overflow: auto; background: var(--papel);
+    background-image: radial-gradient(#f2e3cf 1.3px, transparent 1.4px); background-size: 18px 18px; }
+  #adocao[hidden] { display: none; }
+  .adocao { max-width: 440px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 28px); text-align: center; }
+  .adocao h1 { margin: 0; font-size: 36px; font-weight: 700; letter-spacing: .5px; }
+  .adocao .sub { margin: 2px 0 6px; color: var(--suave); }
+  #previa { display: block; margin: 0 auto; }
+  .campo { margin: 14px 0; text-align: left; }
+  .campo > span { display: block; margin-bottom: 6px; font-weight: 600; }
+  .opcoes { display: flex; gap: 8px; }
+  .opcoes .bt { flex: 1; padding: 9px 6px; font-size: 15px; }
+  .opcoes .bt.on { background: var(--rosa); }
+  .cores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .cor { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px 6px; font-size: 11.5px; font-weight: 500;
+    background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 16px; }
+  .cor.on { background: var(--rosa); box-shadow: 0 3px 0 var(--linha); }
+  #adotar { width: 100%; margin-top: 8px; padding: 14px; font-size: 19px; }
+
+  #aviso { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 64px); z-index: 20; max-width: 88vw; padding: 9px 16px;
+    transform: translate(-50%, -8px); background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 16px; box-shadow: 0 3px 0 var(--linha);
+    font-weight: 500; text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
+  #aviso.on { opacity: 1; transform: translate(-50%, 0); }
+
+  #teste { position: fixed; right: 8px; top: calc(env(safe-area-inset-top) + 64px); z-index: 30; display: flex; flex-direction: column; gap: 4px;
+    padding: 6px; background: rgba(255,250,243,.92); border: 2px dashed var(--linha); border-radius: 12px; font-size: 12px; }
+  #teste button { padding: 3px 6px; font-size: 12px; border: 1.5px solid var(--linha); border-radius: 8px; background: #fff; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-moeda" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" fill="#f6cf5c" stroke="#5a3e36" stroke-width="2"/>
+    <circle cx="12" cy="12" r="6.6" fill="none" stroke="#e0a93a" stroke-width="1.4"/>
+    <g fill="#d99a2b"><ellipse cx="12" cy="13.7" rx="2.6" ry="2.1"/><circle cx="9.2" cy="10.7" r="1.1"/><circle cx="11" cy="9.4" r="1.1"/><circle cx="13" cy="9.4" r="1.1"/><circle cx="14.8" cy="10.7" r="1.1"/></g>
+  </symbol>
+  <symbol id="i-comida" viewBox="0 0 32 32">
+    <path d="M10 12.5c2-3 7-3 9 0-2 3-7 3-9 0zM19 12.5l4.5-3v6z" fill="#a9cdf0" stroke="#5a3e36" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M4.5 17h23c-.6 6.2-5.3 9.5-11.5 9.5S5.1 23.2 4.5 17z" fill="#f7bfcb" stroke="#5a3e36" stroke-width="2.2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-loja" viewBox="0 0 32 32">
+    <path d="M6.5 11h19l-1.6 15.5H8.1z" fill="#fbe7a6" stroke="#5a3e36" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M12 14v-4a4 4 0 0 1 8 0v4" fill="none" stroke="#5a3e36" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M16 23l-2.7-2.5a1.7 1.7 0 0 1 2.7-2.1 1.7 1.7 0 0 1 2.7 2.1z" fill="#f09cb0"/>
+  </symbol>
+  <symbol id="i-gato" viewBox="0 0 32 32">
+    <path d="M8 13 7 4.5l6.2 4.2h5.6L25 4.5 24 13c1.3 1.7 2 3.6 2 5.5C26 24 21.5 27 16 27S6 24 6 18.5c0-1.9.7-3.8 2-5.5z" fill="#f7c9a0" stroke="#5a3e36" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="12" cy="17" r="1.7" fill="#5a3e36"/><circle cx="20" cy="17" r="1.7" fill="#5a3e36"/>
+    <path d="M14.4 20.8q1.6 1.3 3.2 0" fill="none" stroke="#5a3e36" stroke-width="1.6" stroke-linecap="round"/>
+    <ellipse cx="9.4" cy="20.3" rx="1.8" ry="1" fill="#f09cb0"/><ellipse cx="22.6" cy="20.3" rx="1.8" ry="1" fill="#f09cb0"/>
+  </symbol>
+  <symbol id="i-tarefas" viewBox="0 0 32 32">
+    <rect x="7" y="6" width="18" height="21.5" rx="4" fill="#cde9c2" stroke="#5a3e36" stroke-width="2.2"/>
+    <rect x="12" y="3.8" width="8" height="4.4" rx="2" fill="#fffaf3" stroke="#5a3e36" stroke-width="2"/>
+    <path d="M11 15.2l2.6 2.6 4.6-4.8M11 22h10" fill="none" stroke="#5a3e36" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-ajustes" viewBox="0 0 32 32">
+    <g fill="#e4d9f4" stroke="#5a3e36" stroke-width="2">
+      <rect x="13.4" y="3.2" width="5.2" height="7" rx="1.6"/>
+      <rect x="13.4" y="3.2" width="5.2" height="7" rx="1.6" transform="rotate(60 16 16)"/>
+      <rect x="13.4" y="3.2" width="5.2" height="7" rx="1.6" transform="rotate(120 16 16)"/>
+      <rect x="13.4" y="3.2" width="5.2" height="7" rx="1.6" transform="rotate(180 16 16)"/>
+      <rect x="13.4" y="3.2" width="5.2" height="7" rx="1.6" transform="rotate(240 16 16)"/>
+      <rect x="13.4" y="3.2" width="5.2" height="7" rx="1.6" transform="rotate(300 16 16)"/>
+    </g>
+    <circle cx="16" cy="16" r="9" fill="#e4d9f4" stroke="#5a3e36" stroke-width="2.2"/>
+    <circle cx="16" cy="16" r="3.6" fill="#fffaf3" stroke="#5a3e36" stroke-width="2"/>
+  </symbol>
+</svg>
+
+<div id="app" hidden>
+  <header id="topo">
+    <button class="pilula" id="pMoedas" data-abre="comida" aria-label="Moedas"><svg class="ic"><use href="#i-moeda"/></svg><b id="nMoedas">0</b></button>
+    <div class="pilula" id="pNivel"><b id="nNivel">Nv 1</b><span class="barra"><i id="xpBarra" style="width:0"></i></span></div>
+    <button class="redondo" data-abre="ajustes" aria-label="Ajustes"><svg class="ic"><use href="#i-ajustes"/></svg></button>
+  </header>
+  <main id="palco"><canvas id="tela" aria-label="Quarto do gatinho"></canvas></main>
+  <section id="cartao" data-fase="parado">
+    <div id="alerta" hidden></div>
+    <div id="fase"></div>
+    <div id="tempo">25:00</div>
+    <div class="trilho"><div id="progresso"></div></div>
+    <button id="tarefaAtual" data-abre="tarefas"></button>
+    <div id="botoes"></div>
+  </section>
+  <nav id="nav">
+    <button data-abre="comida"><svg class="ic"><use href="#i-comida"/></svg><span>Comida</span></button>
+    <button data-abre="loja"><svg class="ic"><use href="#i-loja"/></svg><span>Loja</span></button>
+    <button data-abre="gato"><svg class="ic"><use href="#i-gato"/></svg><span id="navNome">Gato</span></button>
+    <button data-abre="tarefas"><svg class="ic"><use href="#i-tarefas"/></svg><span>Tarefas</span></button>
+  </nav>
+</div>
+
+<div id="adocao" hidden>
+  <div class="adocao">
+    <h1>PomodoroCat</h1>
+    <p class="sub">Vamos adotar seu gatinho?</p>
+    <canvas id="previa"></canvas>
+    <label class="campo"><span>Nome</span><input type="text" id="aNome" maxlength="14" placeholder="Ex.: Mimi" autocomplete="off"></label>
+    <div class="campo"><span>É</span><div class="opcoes" id="aGenero">
+      <button class="bt" data-v="m">Menino</button><button class="bt" data-v="f">Menina</button></div></div>
+    <div class="campo"><span>Cor</span><div class="cores" id="aCores"></div></div>
+    <div class="campo"><span>Pelo</span><div class="opcoes" id="aPelo"></div></div>
+    <button class="bt rosa" id="adotar" disabled>Adotar 🐾</button>
+  </div>
+</div>
+
+<div id="folha"><div class="folha" id="folhaConteudo"></div></div>
+<div id="aviso" role="status"></div>
+
+<script type="module" src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>

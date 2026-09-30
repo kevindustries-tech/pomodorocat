@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>ícone</title>
+<style>html,body{margin:0;overflow:hidden;background:#f9d4dd}canvas{display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+  // Gera o ícone do app: python gera-icones (Edge headless tira print desta página em cada tamanho).
+  import { desenharGato, LINHA } from './gato.js';
+  const L = +(new URLSearchParams(location.search).get('t') || 512);
+  const c = document.getElementById('c'); c.width = c.height = L;
+  const x = c.getContext('2d');
+  x.fillStyle = '#f9d4dd'; x.fillRect(0, 0, L, L);
+  x.fillStyle = '#f4bccb';
+  for (let j = 0, f = 0; j < L + 20; j += L / 9, f++) for (let i = f % 2 ? L / 18 : 0; i < L + 20; i += L / 9) { x.beginPath(); x.arc(i, j, L / 90, 0, Math.PI * 2); x.fill(); }
+  const e = L / 213;
+  x.save(); x.translate(L / 2, L / 2 + 94 * e); x.scale(e, e);
+  desenharGato(x, { cor: 'laranja', pelo: 'curto' }, { corado: 0.6 }, 0);
+  // folhinha de tomate no alto da cabeça (pomodoro = tomate)
+  x.translate(0, -131); x.lineJoin = 'round'; x.lineWidth = 3; x.strokeStyle = LINHA; x.fillStyle = '#8fce86';
+  x.beginPath();
+  for (let k = 0; k < 5; k++) {
+    const a = -Math.PI / 2 + k * Math.PI * 2 / 5, b = a + Math.PI / 5;
+    x.lineTo(Math.cos(a) * 17, Math.sin(a) * 9); x.lineTo(Math.cos(b) * 6, Math.sin(b) * 4);
+  }
+  x.closePath(); x.fill(); x.stroke();
+  x.beginPath(); x.moveTo(0, -3); x.quadraticCurveTo(2, -14, 7, -18); x.lineWidth = 6; x.stroke(); x.lineWidth = 3; x.strokeStyle = '#8fce86'; x.stroke();
+  x.restore();
+  document.title = 'pronto';
+</script></body></html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galeria · PomodoroCat</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px; background: #fdf6ec; color: #5a3e36; font-family: Fredoka, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 22px; } h2 { font-size: 16px; margin: 20px 0 8px; color: #9b8578; }
+  p { margin: 0 0 12px; color: #9b8578; font-size: 14px; }
+  .grade { display: flex; flex-wrap: wrap; gap: 10px; }
+  figure { margin: 0; text-align: center; font-size: 12px; background: #fffaf3; border: 2px solid #5a3e36; border-radius: 14px; padding: 6px; }
+  figure canvas { display: block; }
+</style>
+</head>
+<body>
+<h1>Galeria</h1>
+<p>Página de conferência: todas as poses, pelagens, roupinhas e móveis desenhados de uma vez. Não faz parte do app.</p>
+<h2>Poses e reações</h2><div class="grade" id="poses"></div>
+<h2>Pelagens × pelo</h2><div class="grade" id="pelagens"></div>
+<h2>Roupinhas</h2><div class="grade" id="roupas"></div>
+<h2>Móveis e paredes</h2><div class="grade" id="moveis"></div>
+<script type="module">
+  import { desenharGato, PELAGENS } from './gato.js';
+  import { miniatura } from './quarto.js';
+  import { ROUPAS, MOVEIS, PAREDES, INICIAIS } from './catalogo.js';
+
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  function quadro(onde, rotulo, w, h, desenhar) {
+    const f = document.createElement('figure'), c = document.createElement('canvas');
+    c.width = w * dpr; c.height = h * dpr; c.style.width = w + 'px'; c.style.height = h + 'px';
+    const x = c.getContext('2d'); x.scale(dpr, dpr); desenhar(x);
+    f.append(c, rotulo); document.getElementById(onde).append(f);
+  }
+  const gato = (g, pose, esc = 0.62, t = 1.3) => x => { x.translate(70, 165); x.scale(esc, esc); desenharGato(x, g, pose, t); };
+  const base = { cor: 'laranja', pelo: 'curto' };
+
+  const POSES = {
+    'normal': {}, 'piscando': { olhos: 'piscando' }, 'lendo (foco)': { livro: true, olhar: { x: 0, y: 2.5 } },
+    'carinho': { olhos: 'fechado', corado: 1, cabecaRot: -0.15 }, 'comendo': { olhos: 'feliz', boca: 'aberta', cabecaRot: 0.13, cabecaDy: 5 },
+    'ronrona (1🪙)': { olhos: 'fechado', corado: 1, cabecaRot: 0.08 },
+    'giro no ar (2🪙)': { olhos: 'feliz', boca: 'aberta', corado: .8, dy: -60, rot: 2.2, patas: 'cima' },
+    'dancinha (3🪙)': { olhos: 'feliz', boca: 'aberta', corado: .8, rot: 0.16, dy: -10, patas: 'esquerda', cabecaRot: -0.1 },
+    'festa': { olhos: 'feliz', boca: 'aberta', patas: 'cima', corado: .8 },
+    'triste': { olhos: 'triste', boca: 'triste', orelhas: 0.45 },
+    'chora (1 dia)': { olhos: 'triste', boca: 'triste', orelhas: 0.7, lagrimas: 1 },
+    'chora muito (2)': { olhos: 'aperto', boca: 'choro', orelhas: 1, lagrimas: 2 },
+    'dodói (3)': { olhos: 'doente', boca: 'triste', orelhas: 0.6, doente: 1, sy: .97 },
+    'médico (7)': { olhos: 'doente', boca: 'triste', orelhas: 0.85, doente: 2, sy: .94 },
+    'estrelinha (15)': { fantasma: true, olhos: 'fechado', dy: -20 },
+  };
+  for (const [nome, p] of Object.entries(POSES)) quadro('poses', nome, 140, 190, gato(base, p, 0.62, 0.5));
+
+  for (const cor of Object.keys(PELAGENS)) for (const pelo of ['curto', 'medio', 'longo'])
+    quadro('pelagens', `${PELAGENS[cor].nome} · ${pelo}`, 110, 150, x => { x.translate(55, 140); x.scale(0.55, 0.55); desenharGato(x, { cor, pelo }, {}, 1); });
+
+  for (const r of ROUPAS) quadro('roupas', r.nome, 120, 170, x => { x.translate(60, 162); x.scale(0.58, 0.58); desenharGato(x, { cor: 'cinza', pelo: 'medio', roupas: { [r.slot]: r.id } }, { olhos: 'feliz' }, 1); });
+
+  for (const m of [...INICIAIS, ...MOVEIS, ...PAREDES.slice(0, 8)]) quadro('moveis', m.nome, 100, 100, x => miniatura(x, m, 100));
+</script>
+</body>
+</html>
