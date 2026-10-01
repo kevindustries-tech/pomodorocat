@@ -47,10 +47,10 @@ const CLARO = { rosa: '#f9d4dd', azul: '#d3e5f6', verde: '#d7edd3', lilas: '#e4d
 const FORTE = { rosa: '#f4b2c3', azul: '#a8cbee', verde: '#acd8a5', lilas: '#c9b6ec', amarelo: '#f3dc86', marrom: '#bf9a7c', bege: '#dcc5a2', cinza: '#c2c0cb', preto: '#554c5c' };
 const NOME = { rosa: 'rosa', azul: 'azul', verde: 'verde', lilas: 'lilás', amarelo: 'amarela', marrom: 'marrom', bege: 'bege', cinza: 'cinza', preto: 'preta' };
 const BRANCO = '#fffcf6';
-const liso = (c, nome) => ({ id: `parede-${c}`, nome, base: CLARO[c], padrao: 'liso', preco: 4 });
-const listra = c => ({ id: `parede-listra-${c}`, nome: `Branco com listra ${NOME[c]}`, base: BRANCO, cor2: FORTE[c], padrao: 'listras', preco: 5 });
-const bolinha = c => ({ id: `parede-bolinha-${c}`, nome: `Branco com bolinha ${NOME[c]}`, base: BRANCO, cor2: FORTE[c], padrao: 'bolinhas', preco: 5 });
-const coracao = c => ({ id: `parede-coracao-${c}`, nome: `Branco com coraçõezinhos (${NOME[c]})`, base: BRANCO, cor2: FORTE[c], padrao: 'coracoes', preco: 6 });
+const liso = (c, nome) => ({ id: `parede-${c}`, nome, cor: c, base: CLARO[c], padrao: 'liso', preco: 4 });
+const listra = c => ({ id: `parede-listra-${c}`, nome: `Branco com listra ${NOME[c]}`, cor: c, base: BRANCO, cor2: FORTE[c], padrao: 'listras', preco: 5 });
+const bolinha = c => ({ id: `parede-bolinha-${c}`, nome: `Branco com bolinha ${NOME[c]}`, cor: c, base: BRANCO, cor2: FORTE[c], padrao: 'bolinhas', preco: 5 });
+const coracao = c => ({ id: `parede-coracao-${c}`, nome: `Branco com coraçõezinhos (${NOME[c]})`, cor: c, base: BRANCO, cor2: FORTE[c], padrao: 'coracoes', preco: 6 });
 
 export const PAREDES = escalonar([
   liso('rosa', 'Rosa liso'), liso('azul', 'Azul liso'), liso('verde', 'Verde claro'),

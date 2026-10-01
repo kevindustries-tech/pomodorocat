@@ -1,5 +1,5 @@
 // Estado do jogo e todas as ações que mexem nele. Nada aqui desenha nem toca em HTML:
-// cada ação devolve { ok } ou { erro } e a interface decide o que mostrar.
+// cada ação devolve { ok } ou { erro: código } e a interface traduz e decide o que mostrar.
 import { R } from './regras.js';
 import { INICIAIS, OPCIONAIS, porId, liberadosNoNivel } from './catalogo.js';
 
@@ -42,21 +42,31 @@ function novo() {
     timer: { fase: 'parado', rodando: false, fimEm: 0, restante: 0, duracao: 0, seguidos: 0 },
     dias: {},                  // 'AAAA-MM-DD' -> pomodoros (sequência e gráficos do VIP)
     total: 0,
-    ajustes: { musica: true, sons: true, pausar: true, telaAcesa: true, focoMin: 25, pausaMin: 5 },
+    ajustes: { idioma: null, musica: true, sons: true, pausar: true, telaAcesa: true, focoMin: 25, pausaMin: 5 },
+    salvoEm: 0,                // quando foi salvo por último (a nuvem usa para desempatar)
   };
 }
 
+// Completa um save (do aparelho ou da nuvem) com os campos que versões novas acrescentaram.
+export function normalizar(j) {
+  if (!j || j.v !== 1) return null;
+  const n = novo();
+  return { ...n, ...j, ajustes: { ...n.ajustes, ...j.ajustes }, timer: { ...n.timer, ...j.timer }, usando: { ...n.usando, ...j.usando } };
+}
+export const estadoNovo = novo;
 export function carregar() {
-  try {
-    const j = JSON.parse(localStorage.getItem(CHAVE));
-    if (j && j.v === 1) {
-      const n = novo();
-      return { ...n, ...j, ajustes: { ...n.ajustes, ...j.ajustes }, timer: { ...n.timer, ...j.timer }, usando: { ...n.usando, ...j.usando } };
-    }
-  } catch { }
+  try { const j = normalizar(JSON.parse(localStorage.getItem(CHAVE))); if (j) return j; } catch { }
   return novo();
 }
-export function salvar(s) { try { localStorage.setItem(CHAVE, JSON.stringify(s)); } catch { } }
+export function salvar(s) { s.salvoEm = Date.now(); try { localStorage.setItem(CHAVE, JSON.stringify(s)); } catch { } }
+
+// Qual save tem mais jogo dentro: quando aparelho e nuvem discordam, ninguém quer perder o mais completo.
+export function maisCompleto(a, b) {
+  const chave = x => [x?.gato ? 1 : 0, x?.total || 0, x?.xp || 0, x?.salvoEm || 0];
+  const ka = chave(a), kb = chave(b);
+  for (let i = 0; i < ka.length; i++) if (ka[i] !== kb[i]) return ka[i] > kb[i] ? a : b;
+  return a;
+}
 export function apagarTudo() { try { localStorage.removeItem(CHAVE); sessionStorage.removeItem('pc.desloc'); } catch { } }
 
 export function adotar(s, gato) {
@@ -101,11 +111,6 @@ export function humor(s) {
   return 'normal';
 }
 
-// Pronomes a partir do gênero que ela escolheu na adoção.
-export const txt = s => s.gato?.genero === 'f'
-  ? { ele: 'ela', o: 'a', gatinho: 'gatinha', dele: 'dela', Ele: 'Ela' }
-  : { ele: 'ele', o: 'o', gatinho: 'gatinho', dele: 'dele', Ele: 'Ele' };
-
 export function ganharXp(s, n) {
   const antes = nivel(s);
   s.xp += n;
@@ -118,11 +123,11 @@ export function ganharXp(s, n) {
 
 // ---------- ações ----------
 export function alimentar(s, id) {
-  const c = porId(id), n = s.gato.nome;
-  if (s.saude === 'morto') return { erro: `${n} precisa do elixir primeiro.` };
-  if (!c || c.nivel > nivel(s)) return { erro: 'Essa comida ainda não foi liberada.' };
-  if (saciedade(s) >= R.cheio) return { erro: `${n} está cheinh${txt(s).o}! Volta mais tarde.` };
-  if (s.moedas < c.preco) return { erro: `Faltam ${c.preco - s.moedas} moeda${c.preco - s.moedas > 1 ? 's' : ''}.` };
+  const c = porId(id);
+  if (s.saude === 'morto') return { erro: 'morto' };
+  if (!c || c.nivel > nivel(s)) return { erro: 'bloqueado' };
+  if (saciedade(s) >= R.cheio) return { erro: 'cheio' };
+  if (s.moedas < c.preco) return { erro: 'faltam', n: c.preco - s.moedas };
   s.moedas -= c.preco;
   mexer(s, 'saciedade', R.enche[c.preco]);
   mexer(s, 'felicidade', R.alegra[c.preco]);
@@ -131,7 +136,7 @@ export function alimentar(s, id) {
 }
 
 export function limparAreia(s) {
-  if (!areiaSuja(s)) return { erro: 'A areia ainda está limpinha.' };
+  if (!areiaSuja(s)) return { erro: 'limpa' };
   s.areia = 0;
   mexer(s, 'felicidade', R.alegraAreia);
   return { ok: true, subiu: ganharXp(s, R.xp.areia) };
@@ -139,9 +144,9 @@ export function limparAreia(s) {
 
 export function comprar(s, id) {
   const it = porId(id);
-  if (!it || !it.slot || s.tem[id]) return { erro: 'Não dá para comprar isso.' };
-  if (it.nivel > nivel(s)) return { erro: `Libera no nível ${it.nivel}.` };
-  if (s.moedas < it.preco) return { erro: `Faltam ${it.preco - s.moedas} moeda${it.preco - s.moedas > 1 ? 's' : ''}.` };
+  if (!it || !it.slot || s.tem[id]) return { erro: 'naoCompra' };
+  if (it.nivel > nivel(s)) return { erro: 'nivel', n: it.nivel };
+  if (s.moedas < it.preco) return { erro: 'faltam', n: it.preco - s.moedas };
   s.moedas -= it.preco;
   s.tem[id] = true;
   s.usando[it.slot] = id;
@@ -157,9 +162,9 @@ export function usar(s, id) {
 
 const TRATA = { remedio: ['doente'], medico: ['doente', 'grave'], elixir: ['morto'] };
 export function tratar(s, tipo) {
-  if (!TRATA[tipo].includes(s.saude)) return { erro: 'Não precisa disso agora.' };
+  if (!TRATA[tipo].includes(s.saude)) return { erro: 'naoPrecisa' };
   const p = R.precos[tipo];
-  if (s.moedas < p) return { erro: `Faltam ${p - s.moedas} moeda${p - s.moedas > 1 ? 's' : ''}.` };
+  if (s.moedas < p) return { erro: 'faltam', n: p - s.moedas };
   s.moedas -= p;
   s.saude = 'ok';
   s.ultimoCuidado = hoje();

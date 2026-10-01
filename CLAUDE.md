@@ -31,7 +31,10 @@ os móveis são desenhados em código, então cor, pelagem, pelo e roupinha são
 | `quarto.js` | O quarto de frente e cada móvel no seu slot; miniaturas da loja |
 | `cena.js` | Junta quarto + gato + partículas + balão; animações das reações |
 | `som.js` | Musiquinha e sons gerados com Web Audio (sem arquivo de áudio) |
-| `app.js` | Cola: adoção, cartão do timer, folhas, cliques |
+| `i18n.js` | **Todos os textos** em português, espanhol e inglês, e os nomes dos itens |
+| `nuvem.js` | Conta (e-mail + senha) e cópia do save no Supabase |
+| `supabase/saves.sql` | Tabela `saves` + RLS. Roda uma vez no SQL Editor do projeto |
+| `app.js` | Cola: idioma, conta, adoção, cartão do timer, folhas, cliques |
 | `galeria.html` | Página de conferência com todas as poses, pelagens, roupinhas e móveis |
 | `icone.html` | Desenha o ícone; os PNG saem por print do Edge headless |
 | `sw.js` | Service worker (offline, rede primeiro). Só registra em https |
@@ -46,6 +49,19 @@ Dados em `localStorage['pomodorocat.v1']`.
 - Nenhum celular garante alarme de PWA com a tela apagada. Por isso a tela fica acesa no foco
   (Wake Lock). Alarme em segundo plano de verdade só empacotando como app (Capacitor, fase 3).
 - **Mexeu em arquivo da lista `APP` do `sw.js`? Suba o `CACHE`.**
+- **Nenhum texto visível escrito direto no código**: tudo passa por `t('chave')` do `i18n.js`, nos
+  três idiomas. Texto novo sem as três traduções cai no português — e o espanhol/inglês fica capenga.
+  Erro de ação do `estado.js` é código (`{ erro: 'faltam', n }`), traduzido na tela.
+- **Conta obrigatória** (decisão do Kevin, igual ao Ilha): com servidor configurado e internet,
+  não se joga sem entrar. Sem internet, joga e a tela vem depois. Ao entrar, fica o save mais
+  completo entre aparelho e nuvem (`maisCompleto`: mais pomodoros, depois XP, depois o mais recente).
+  "Apagar tudo" com conta também zera a nuvem, senão o save voltaria no próximo login.
+- O Supabase é um **projeto só do PomodoroCat** (não o do Ilha). "Confirm email" desligado:
+  o e-mail grátis do Supabase só entrega para membros do projeto. Esqueci-a-senha precisa de SMTP.
+- `?nuvem=falsa` troca o Supabase por um servidor de mentira no navegador — para testar conta,
+  login, celular novo e apagar tudo sem criar conta de verdade. Combina com `?teste=1`.
+- O quarto **estica** para ocupar a tela (pedido da Bianca): desenho base 400 × 460; cada slot
+  se prende a uma parede (`ANCORA` em `quarto.js`). Móvel novo precisa de âncora.
 - `?teste=1` na URL: foco de 20 s, pausa de 8 s e um painel para pular dias, ganhar moeda/XP,
   dar fome e sujar a areia. Use para conferir a linha do tempo da saúde sem esperar semanas.
 - Servidor: `preview_start {name: "pomodorocat"}` (configurado no `.claude/launch.json` do vault).

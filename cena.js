@@ -1,7 +1,7 @@
 // Monta a tela: quarto + gatinho + partículas + balão de fala. Cuida das animações e reações.
 // Não lê o estado do jogo direto: a cada quadro o app entrega uma "visão" pronta.
 import { desenharGato, LINHA, coracao } from './gato.js';
-import { W, H, ceu, desenharQuarto, desenharNoite, desenharMoldura, desenharTigela, caixaDe, CAIXA_TIGELA } from './quarto.js';
+import { W, H, ceu, desenharQuarto, desenharNoite, desenharMoldura, desenharTigela, caixaNoQuarto, CAIXA_TIGELA } from './quarto.js';
 
 const GX = 200, GY = 432, GE = 1.3;                 // onde o gato fica e o tamanho dele no quarto
 const TAU = Math.PI * 2;
@@ -16,16 +16,19 @@ export function criarCena(canvas) {
   const fora = document.createElement('canvas');      // o fantasminha é desenhado aqui e colado translúcido
   const fctx = fora.getContext('2d');
   let dpr = 1, escala = 1, tAgora = 0, visAtual = null;
+  let WL = W, HL = H, ext = { dx: 0, dy: 0 };          // tamanho lógico real do quarto (estica com a tela)
   let acao = null, parts = [], fala = null, tigela = null;
   const piscar = { prox: 2, ate: 0 }, orelha = { prox: 6, ate: 0 };
   let proxCoracao = 5, proxFedor = 0;
 
-  function redimensionar(larg, alt) {
+  // larg × alt em pixels de CSS; wl × hl = tamanho lógico (no mínimo 400 × 460, o desenho original).
+  function redimensionar(larg, alt, wl = W, hl = H) {
     dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     canvas.style.width = larg + 'px'; canvas.style.height = alt + 'px';
     canvas.width = fora.width = Math.round(larg * dpr);
     canvas.height = fora.height = Math.round(alt * dpr);
-    escala = larg / W;
+    WL = wl; HL = hl; escala = larg / WL;
+    ext = { dx: (WL - W) / 2, dy: HL - H };
   }
 
   // ---------- partículas ----------
@@ -39,7 +42,7 @@ export function criarCena(canvas) {
     for (let i = 0; i < n; i++) { const a = (i / n) * TAU + ao(-0.2, 0.2); soltar('brilho', x, y, { vx: Math.cos(a) * raio, vy: Math.sin(a) * raio * 0.6, vida: 0.8, s: ao(0.7, 1.2) }); }
   }
   function confete(n = 34) {
-    for (let i = 0; i < n; i++) soltar('confete', ao(30, 370), ao(-10, 40), { vx: ao(-30, 30), vy: ao(20, 80), g: 60, vida: 2.6, rot: ao(0, 6), vr: ao(-6, 6), cor: CORES[i % 6] });
+    for (let i = 0; i < n; i++) soltar('confete', ao(30 - ext.dx, W + ext.dx - 30), ao(-10 - ext.dy, 40 - ext.dy), { vx: ao(-30, 30), vy: ao(20, 80), g: 60, vida: 2.6, rot: ao(0, 6), vr: ao(-6, 6), cor: CORES[i % 6] });
   }
   function moedinha(n) {
     soltar('moeda', GX, topoCabeca() + 10, { vy: -45, vida: 1.8, txt: `+${n}` });
@@ -57,7 +60,7 @@ export function criarCena(canvas) {
     }
     if (vis.humor === 'feliz' && !acao && t > proxCoracao) { coracaozinho(); proxCoracao = t + ao(6, 10); }
     if (vis.suja && t > proxFedor) {
-      const [bx, by, bw] = caixaDe(vis.usando.areia);
+      const [bx, by, bw] = caixaNoQuarto(vis.usando.areia, ext);
       soltar('fedor', bx + ao(bw * 0.25, bw * 0.75), by + 6, { vy: -22, vida: 1.8, fase: ao(0, 6) });
       proxFedor = t + 0.9;
     }
@@ -162,7 +165,7 @@ export function criarCena(canvas) {
     ctx.save();
     ctx.font = '600 15px Fredoka, "Segoe UI Emoji", sans-serif';
     const w = ctx.measureText(texto).width + 26, h = 32;
-    const bx = Math.max(16, Math.min(W - 16 - w, x - w / 2)), by = y - h;
+    const bx = Math.max(16 - ext.dx, Math.min(W + ext.dx - 16 - w, x - w / 2)), by = y - h;
     ctx.lineWidth = 2.5; ctx.strokeStyle = LINHA; ctx.fillStyle = '#fffdf8'; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.roundRect(bx, by, w, h, 16); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x - 8, by + h - 1.5); ctx.lineTo(x - 2, by + h + 9); ctx.lineTo(x + 8, by + h - 1.5); ctx.fill(); ctx.stroke();
@@ -178,10 +181,11 @@ export function criarCena(canvas) {
     tAgora = t; visAtual = vis;
     if (acao && t > acao.ini + acao.dur) { const prox = acao.depois; acao = null; if (prox) iniciar(prox); }
 
-    ctx.setTransform(dpr * escala, 0, 0, dpr * escala, 0, 0);
-    ctx.clearRect(0, 0, W, H);
+    const k = dpr * escala;
+    ctx.setTransform(k, 0, 0, k, k * ext.dx, k * ext.dy);       // o desenho original fica no meio, em baixo
+    ctx.clearRect(-ext.dx, -ext.dy, WL, HL);
     const c = ceu(vis.hora);
-    desenharQuarto(ctx, vis, t, c);
+    desenharQuarto(ctx, vis, t, c, ext);
     desenharTigela(ctx, tigela && t < tigela.ate ? tigela.comida : null);
 
     const p = pose(vis, t);
@@ -192,7 +196,7 @@ export function criarCena(canvas) {
     if (p.fantasma) {
       fctx.setTransform(1, 0, 0, 1, 0, 0);
       fctx.clearRect(0, 0, fora.width, fora.height);
-      fctx.setTransform(dpr * escala * GE, 0, 0, dpr * escala * GE, dpr * escala * GX, dpr * escala * GY);
+      fctx.setTransform(k * GE, 0, 0, k * GE, k * (GX + ext.dx), k * (GY + ext.dy));
       desenharGato(fctx, vis.gato, p, t);
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.72; ctx.drawImage(fora, 0, 0); ctx.restore();
     } else {
@@ -201,10 +205,10 @@ export function criarCena(canvas) {
 
     emitir(vis, t, dt);
     desenharParticulas(t, dt);
-    if (c.noite) desenharNoite(ctx, vis, c);
+    if (c.noite) desenharNoite(ctx, vis, c, ext);
     const texto = fala && t < fala.ate ? fala.texto : (!acao && vis.fala && (t % 10) < 4.5 ? vis.fala : null);
     if (texto) balao(texto, GX, topoCabeca() - 14 + (p.fantasma ? -26 : 0));
-    desenharMoldura(ctx);
+    desenharMoldura(ctx, ext);
   }
 
   function iniciar(tipo, extra = {}) {
@@ -220,11 +224,11 @@ export function criarCena(canvas) {
     comer(comida, reacao) { tigela = { comida, ate: tAgora + DUR.comer + 0.4 }; iniciar('comer', { depois: reacao }); },
     falar(texto, dur = 3) { fala = { texto, ate: tAgora + dur }; },
     confete, moedinha,
-    brilharAreia() { const [x, y, w] = caixaDe(visAtual.usando.areia); brilhos(x + w / 2, y + 10, 10, 70); },
+    brilharAreia() { const [x, y, w] = caixaNoQuarto(visAtual.usando.areia, ext); brilhos(x + w / 2, y + 10, 10, 70); },
     toque(xCss, yCss) {
-      const x = xCss / escala, y = yCss / escala;
+      const x = xCss / escala - ext.dx, y = yCss / escala - ext.dy;
       if (x > 145 && x < 255 && y > 225 && y < 446) return 'gato';
-      if (visAtual && dentro(x, y, caixaDe(visAtual.usando.areia))) return 'areia';
+      if (visAtual && dentro(x, y, caixaNoQuarto(visAtual.usando.areia, ext))) return 'areia';
       if (dentro(x, y, CAIXA_TIGELA)) return 'tigela';
       return null;
     },

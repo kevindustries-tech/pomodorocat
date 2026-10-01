@@ -58,13 +58,20 @@ const pesoBochecha = a => Math.pow(Math.max(0, Math.cos(a - 0.5)), 5) + Math.pow
 const pesoCabecaLonga = a => 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(a));  // mais fofo embaixo, quase liso no topo
 const pesoCorpoLongo = a => 1 - Math.pow(Math.max(0, Math.sin(a)), 4); // não arrepia onde encosta no chão
 
+// Mechas lisas: poucas pontas longas e macias (curva de sino), não dezenas de ondinhas —
+// muitas ondinhas pequenas no contorno inteiro deixavam o pelo longo com cara de embolado.
+const difAng = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+const mechas = lista => a => lista.reduce((t, [ang, amp, larg]) => t + amp * Math.exp(-Math.pow(difAng(a, ang) / larg, 2)), 0);
+const espelhar = lista => lista.flatMap(([ang, amp, larg]) => [[ang, amp, larg], [Math.PI - ang, amp, larg]]);
+const MECHAS_LONGO = [...espelhar([[0.12, 7, 0.11], [0.42, 11, 0.12], [0.74, 8, 0.11]]), [-Math.PI / 2 + 0.1, 5, 0.07]];
+
 const cacheFormas = {};
 function formas(pelo) {
   if (cacheFormas[pelo]) return cacheFormas[pelo];
-  const cab = pelo === 'longo' ? oval(0, CAB.y, CAB.rx - 1, CAB.ry - 1, soma(nuvem(4, pesoCabecaLonga, 14), tufo(6, pesoBochecha, 18)))
+  const cab = pelo === 'longo' ? oval(0, CAB.y, CAB.rx + 2, CAB.ry + 1, mechas(MECHAS_LONGO))
     : pelo === 'medio' ? oval(0, CAB.y, CAB.rx, CAB.ry, tufo(6, pesoBochecha, 18))
       : oval(0, CAB.y, CAB.rx, CAB.ry);
-  const corpo = pelo === 'longo' ? oval(0, CORPO.y, CORPO.rx - 1, CORPO.ry - 1, nuvem(4, pesoCorpoLongo, 12)) : oval(0, CORPO.y, CORPO.rx, CORPO.ry);
+  const corpo = pelo === 'longo' ? oval(0, CORPO.y, CORPO.rx + 3, CORPO.ry + 1) : oval(0, CORPO.y, CORPO.rx, CORPO.ry);
   return (cacheFormas[pelo] = { cab, corpo });
 }
 
@@ -80,7 +87,7 @@ function trianguloRedondo(p, A, T, B, rBase, rPonta) {
   p.arcTo(B[0], B[1], A[0], A[1], rBase);
   p.closePath();
 }
-function orelha(ctx, lado, pal, cor, caida, twitch) {
+function orelha(ctx, lado, pal, cor, caida, twitch, pelo) {
   const A0 = [lado * 49, -99], T0 = [lado * 43, -151], B0 = [lado * 13, -126];
   const piv = [(A0[0] + B0[0]) / 2, (A0[1] + B0[1]) / 2];
   const ang = lado * (caida * 0.75 + twitch);
@@ -94,6 +101,14 @@ function orelha(ctx, lado, pal, cor, caida, twitch) {
   const pi = new Path2D();
   trianguloRedondo(pi, enc(A), enc(T), enc(B), 4, 3);
   ctx.fillStyle = pal.orelha || '#f6b3c2'; ctx.fill(pi);
+  if (pelo === 'longo') {                         // tufinhos saindo de dentro da orelha
+    const M = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+    for (const k of [-0.25, 0, 0.25]) {
+      const x0 = M[0] + (B[0] - A[0]) * k * 0.6, y0 = M[1] + (B[1] - A[1]) * k * 0.6 + 2;
+      linha(ctx, x0, y0, x0 + (T[0] - M[0]) * 0.45 + (B[0] - A[0]) * k * 0.15, y0 + (T[1] - M[1]) * 0.45);
+    }
+  }
 }
 function corOrelha(pal, lado) {
   if (pal.padrao === 'frajola' || pal.padrao === 'siames') return pal.mancha;
@@ -102,7 +117,7 @@ function corOrelha(pal, lado) {
 }
 
 function cauda(ctx, pal, pelo, fase) {
-  const w = pelo === 'longo' ? 18 : pelo === 'medio' ? 14 : 12;
+  const w = pelo === 'longo' ? 21 : pelo === 'medio' ? 14 : 12;
   const p = new Path2D();
   p.moveTo(20, -12);
   p.bezierCurveTo(56, -8, 64 + fase * 5, -44, 50 + fase * 16, -76 + Math.abs(fase) * 5);
@@ -121,11 +136,24 @@ function cauda(ctx, pal, pelo, fase) {
 
 function mancha(ctx, cor, x, y, rx, ry, rot) { ctx.fillStyle = cor; elipse(ctx, x, y, rx, ry, rot); ctx.fill(); }
 
-// Peitinho fofo: nuvenzinha mais clara embaixo do queixo.
+// Peitinho fofo embaixo do queixo. Médio: nuvenzinha clara. Longo: babador liso com três pontas.
 function tufoPeito(ctx, pelo) {
-  const bolas = pelo === 'longo' ? [[-15, -45, 11], [0, -40, 13], [15, -45, 11]] : [[-8, -47, 8], [0, -44, 9], [8, -47, 8]];
+  if (pelo === 'longo') {
+    ctx.beginPath();
+    ctx.moveTo(-29, -66);
+    ctx.quadraticCurveTo(-31, -43, -18, -28);
+    ctx.quadraticCurveTo(-9, -39, 0, -22);
+    ctx.quadraticCurveTo(9, -39, 18, -28);
+    ctx.quadraticCurveTo(31, -43, 29, -66);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(90,62,54,.28)'; ctx.stroke();
+    ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(90,62,54,.18)'; ctx.lineCap = 'round';
+    for (const l of [-1, 1]) { ctx.beginPath(); ctx.moveTo(l * 9, -50); ctx.quadraticCurveTo(l * 11, -42, l * 8, -36); ctx.stroke(); }
+    return;
+  }
   ctx.beginPath();
-  for (const [x, y, r] of bolas) { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU); }
+  for (const [x, y, r] of [[-8, -47, 8], [0, -44, 9], [8, -47, 8]]) { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU); }
   ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
 }
 
@@ -503,8 +531,8 @@ export function desenharGato(ctx, g, pose = {}, t = 0) {
 
   ctx.save();                                                 // a cabeça gira em volta do pescoço
   ctx.translate(0, PESCOCO_Y + P.cabecaDy); ctx.rotate(P.cabecaRot); ctx.translate(0, -PESCOCO_Y);
-  orelha(ctx, -1, pal, corOrelha(pal, -1), P.orelhas, 0);
-  orelha(ctx, 1, pal, corOrelha(pal, 1), P.orelhas, P.twitch);
+  orelha(ctx, -1, pal, corOrelha(pal, -1), P.orelhas, 0, g.pelo);
+  orelha(ctx, 1, pal, corOrelha(pal, 1), P.orelhas, P.twitch, g.pelo);
   cabeca(ctx, pal, F);
   rosto(ctx, pal, P);
   if (P.lagrimas) lagrimas(ctx, P.lagrimas, t);

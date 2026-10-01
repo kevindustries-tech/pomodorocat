@@ -1,7 +1,7 @@
 // Service worker: o app funciona offline. Rede primeiro (pega atualização), cache se estiver sem internet.
 // MEXEU EM QUALQUER ARQUIVO DA LISTA? Suba o CACHE, senão o app instalado continua servindo a versão velha.
-const CACHE = 'pomodorocat-v0.1';
-const APP = ['./', './index.html', './app.js', './estado.js', './regras.js', './catalogo.js', './gato.js', './quarto.js', './cena.js', './som.js',
+const CACHE = 'pomodorocat-v0.2';
+const APP = ['./', './index.html', './app.js', './estado.js', './regras.js', './catalogo.js', './gato.js', './quarto.js', './cena.js', './som.js', './i18n.js', './nuvem.js',
   './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(APP)).then(() => self.skipWaiting())); });

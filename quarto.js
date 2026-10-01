@@ -38,15 +38,18 @@ export function desenharParede(ctx, p, x, y, w, h, esc = 1) {
   ctx.restore();
 }
 
-function chao(ctx) {
-  ctx.fillStyle = '#f1d9b5'; ctx.fillRect(0, CHAO, W, H - CHAO);
+function chao(ctx, ext) {
+  const x0 = -ext.dx, x1 = W + ext.dx;
+  ctx.fillStyle = '#f1d9b5'; ctx.fillRect(x0, CHAO, x1 - x0, H - CHAO);
   ctx.strokeStyle = 'rgba(90,62,54,.15)'; ctx.lineWidth = 2;
   const faixas = [CHAO, CHAO + 30, CHAO + 66, CHAO + 106, H];
-  for (const y of faixas.slice(1, -1)) linha(ctx, 0, y, W, y);
-  for (const [x, k] of [[70, 0], [236, 0], [150, 1], [322, 1], [44, 2], [262, 2], [118, 3], [350, 3]]) linha(ctx, x, faixas[k], x, faixas[k + 1]);
-  ctx.fillStyle = '#fff6ea'; ctx.fillRect(0, CHAO - 12, W, 12);                    // rodapé
+  for (const y of faixas.slice(1, -1)) linha(ctx, x0, y, x1, y);
+  [70, 150, 44, 118].forEach((ini, k) => {                        // emendas das tábuas, desencontradas
+    for (let x = ini - 170 * Math.ceil((ini - x0) / 170); x < x1; x += 170) linha(ctx, x, faixas[k], x, faixas[k + 1]);
+  });
+  ctx.fillStyle = '#fff6ea'; ctx.fillRect(x0, CHAO - 12, x1 - x0, 12);                 // rodapé
   ctx.strokeStyle = LINHA; ctx.lineWidth = 2.5;
-  linha(ctx, 0, CHAO - 12, W, CHAO - 12); linha(ctx, 0, CHAO, W, CHAO);
+  linha(ctx, x0, CHAO - 12, x1, CHAO - 12); linha(ctx, x0, CHAO, x1, CHAO);
 }
 
 // ---------- janela ----------
@@ -148,7 +151,7 @@ function prateleira(ctx) {
 
 function lustre(ctx, t, c) {
   if (c.noite) brilho(ctx, 305, 70, 120);
-  ctx.lineWidth = 2.5; ctx.strokeStyle = LINHA; linha(ctx, 305, 0, 305, 40);
+  ctx.lineWidth = 2.5; ctx.strokeStyle = LINHA; linha(ctx, 305, -400, 305, 40);   // fio vem do teto, seja qual for a altura
   ctx.beginPath(); ctx.moveTo(281, 62); ctx.bezierCurveTo(281, 34, 329, 34, 329, 62); ctx.closePath(); contornar(ctx, '#f9cdd8');
   circulo(ctx, 305, 66, 5.5); contornar(ctx, '#fff3b0', 2);
 }
@@ -263,34 +266,62 @@ const CAIXA = {
 export const caixaDe = id => CAIXA[id];
 export const CAIXA_TIGELA = [250, 416, 68, 40];
 
+// O quarto foi desenhado com 400 × 460, mas estica para ocupar a tela inteira (pedido da Bianca).
+// ext = { dx, dy }: quanto sobra de cada lado e em cima. Cada slot se prende a uma parede:
+// o da esquerda acompanha a parede esquerda, o da direita a direita; o que fica na parede sobe
+// um pouco quando o quarto fica mais alto, e o lustre continua pendurado no teto.
+const ANCORA = {
+  janela: [0, -0.4], quadro: [-1, -0.4], prateleira: [1, -0.4], lustre: [1, -1],
+  estante: [-1, 0], planta: [-1, 0], abajur: [1, 0], cama: [1, 0], tapete: [0, 0], areia: [-1, 0],
+};
+export const SEM_EXTRA = { dx: 0, dy: 0 };
+export function deslocamento(slot, ext) {
+  const [ax, ay] = ANCORA[slot] || [0, 0];
+  return [ax * ext.dx, ay * ext.dy];
+}
+export function caixaNoQuarto(id, ext) {
+  const it = porId(id), [x, y, w, h] = CAIXA[id], [ox, oy] = deslocamento(it.slot, ext);
+  return [x + ox, y + oy, w, h];
+}
+const contornoQuarto = ext => [8 - ext.dx, 8 - ext.dy, W + 2 * ext.dx - 16, H + ext.dy - 16];
+
 // ordem de trás para a frente
 const ORDEM = ['janela', 'quadro', 'prateleira', 'lustre', 'estante', 'planta', 'abajur', 'cama', 'tapete', 'areia'];
 
-export function desenharQuarto(ctx, vis, t, c) {
-  ctx.fillStyle = 'rgba(90,62,54,.13)'; rr(ctx, 8, 15, 384, 444, 26); ctx.fill();   // sombra de maquete
+export function desenharQuarto(ctx, vis, t, c, ext = SEM_EXTRA) {
+  const [x, y, w, h] = contornoQuarto(ext);
+  ctx.fillStyle = 'rgba(90,62,54,.13)'; rr(ctx, x, y + 7, w, h, 26); ctx.fill();         // sombra de maquete
   ctx.save();
-  rr(ctx, 8, 8, 384, 444, 26); ctx.clip();
-  desenharParede(ctx, porId(vis.usando.parede) || porId('parede-creme'), 0, 0, W, CHAO);
-  chao(ctx);
-  if (!c.noite) {                                                             // luz da janela no chão
+  rr(ctx, x, y, w, h, 26); ctx.clip();
+  desenharParede(ctx, porId(vis.usando.parede) || porId('parede-creme'), -ext.dx, -ext.dy, W + 2 * ext.dx, CHAO + ext.dy);
+  chao(ctx, ext);
+  if (!c.noite) {                                                                       // luz da janela no chão
     ctx.fillStyle = 'rgba(255,255,255,.28)';
     ctx.beginPath(); ctx.moveTo(152, CHAO); ctx.lineTo(248, CHAO); ctx.lineTo(292, 408); ctx.lineTo(172, 408); ctx.closePath(); ctx.fill();
   }
-  for (const slot of ORDEM) { const id = vis.usando[slot]; if (MOVEL[id]) MOVEL[id](ctx, t, c, vis); }
+  for (const slot of ORDEM) {
+    const id = vis.usando[slot];
+    if (!MOVEL[id]) continue;
+    const [ox, oy] = deslocamento(slot, ext);
+    ctx.save(); ctx.translate(ox, oy); MOVEL[id](ctx, t, c, vis); ctx.restore();
+  }
   ctx.restore();
 }
 
-export function desenharNoite(ctx, vis, c) {
+export function desenharNoite(ctx, vis, c, ext = SEM_EXTRA) {
+  const [x, y, w, h] = contornoQuarto(ext);
   ctx.save();
-  rr(ctx, 8, 8, 384, 444, 26); ctx.clip();
-  ctx.fillStyle = 'rgba(45,45,100,.16)'; ctx.fillRect(0, 0, W, H);
-  if (vis.usando.abajur) brilho(ctx, 359, 250, 130);
-  if (vis.usando.lustre) brilho(ctx, 305, 70, 140);
+  rr(ctx, x, y, w, h, 26); ctx.clip();
+  ctx.fillStyle = 'rgba(45,45,100,.16)'; ctx.fillRect(x, y, w, h);
+  const [ax, ay] = deslocamento('abajur', ext), [lx, ly] = deslocamento('lustre', ext);
+  if (vis.usando.abajur) brilho(ctx, 359 + ax, 250 + ay, 130);
+  if (vis.usando.lustre) brilho(ctx, 305 + lx, 70 + ly, 140);
   ctx.restore();
 }
 
-export function desenharMoldura(ctx) {
-  rr(ctx, 8, 8, 384, 444, 26); ctx.lineWidth = 4; ctx.strokeStyle = LINHA; ctx.stroke();
+export function desenharMoldura(ctx, ext = SEM_EXTRA) {
+  const [x, y, w, h] = contornoQuarto(ext);
+  rr(ctx, x, y, w, h, 26); ctx.lineWidth = 4; ctx.strokeStyle = LINHA; ctx.stroke();
 }
 
 export function desenharTigela(ctx, comida) {

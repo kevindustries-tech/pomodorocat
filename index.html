@@ -48,21 +48,24 @@
   #tela { display: block; touch-action: manipulation; }
 
   #cartao { background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 22px; box-shadow: 0 4px 0 var(--linha);
-    padding: 10px 14px 14px; text-align: center; }
+    padding: 8px 12px 10px; }
   #alerta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;
     padding: 6px 6px 6px 12px; border: 2px dashed var(--rosa2); border-radius: 14px; background: #fdecef; font-size: 14px; font-weight: 500; text-align: left; }
   #alerta[hidden] { display: none; }
   #alerta .grupo { display: flex; gap: 6px; flex: none; }
   #alerta .bt { padding: 6px 10px; font-size: 14px; border-radius: 12px; box-shadow: 0 3px 0 var(--linha); }
-  #fase { font-size: 14px; color: var(--suave); font-weight: 500; min-height: 1.2em; }
-  #tempo { font-size: 48px; font-weight: 600; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
-  .trilho { height: 10px; margin: 6px 4px 8px; border-radius: 99px; background: var(--trilho); border: 2px solid var(--linha); overflow: hidden; }
+  /* cartão compacto: o espaço vai para o quarto (pedido da Bianca) */
+  .linhaTopo { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 24px; }
+  #fase { min-width: 0; font-size: 13.5px; color: var(--suave); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .linhaMeio { display: flex; align-items: center; gap: 10px; }
+  #tempo { flex: none; font-size: 42px; font-weight: 600; line-height: 1.12; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+  .trilho { height: 8px; margin: 8px 2px 0; border-radius: 99px; background: var(--trilho); border: 2px solid var(--linha); overflow: hidden; }
   #progresso { height: 100%; width: 0; background: var(--rosa2); }
   #cartao[data-fase="pausa"] #progresso { background: #9fd39a; }
-  #tarefaAtual { display: inline-flex; max-width: 100%; margin: 0 0 8px; padding: 3px 10px; border: 2px dashed #e2cfb8; border-radius: 99px;
-    background: none; font-size: 13px; font-weight: 500; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #botoes { display: flex; gap: 8px; justify-content: center; }
-  #botoes .bt { flex: 1; max-width: 220px; white-space: nowrap; }
+  #tarefaAtual { flex: none; max-width: 48%; padding: 2px 10px; border: 2px dashed #e2cfb8; border-radius: 99px;
+    background: none; font-size: 12.5px; font-weight: 500; color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #botoes { flex: 1; min-width: 0; display: flex; gap: 6px; justify-content: flex-end; }
+  #botoes .bt { flex: 1; max-width: 170px; padding: 9px 6px; font-size: 15px; white-space: nowrap; }
 
   .bt { font-weight: 600; font-size: 16px; padding: 10px 16px; background: var(--cartao); border: 2.5px solid var(--linha);
     border-radius: 16px; box-shadow: 0 4px 0 var(--linha); transition: transform .08s, box-shadow .08s; }
@@ -121,9 +124,9 @@
 
   .nova { display: flex; gap: 8px; margin: 12px 0; }
   .nova input { flex: 1; min-width: 0; }
-  input[type=text] { width: 100%; font: inherit; font-size: 17px; padding: 10px 14px; color: var(--linha); background: var(--cartao);
+  input[type=text], input[type=email], input[type=password] { width: 100%; font: inherit; font-size: 17px; padding: 10px 14px; color: var(--linha); background: var(--cartao);
     border: 2.5px solid var(--linha); border-radius: 14px; outline: none; -webkit-user-select: text; user-select: text; }
-  input[type=text]:focus { box-shadow: 0 0 0 3px var(--rosa); }
+  input[type=text]:focus, input[type=email]:focus, input[type=password]:focus { box-shadow: 0 0 0 3px var(--rosa); }
   .tarefas { list-style: none; margin: 0; padding: 0; }
   .tarefas li { display: flex; align-items: center; gap: 8px; padding: 8px 4px; border-bottom: 2px dotted #eadbc6; }
   .tarefas li.atual { background: #fdecef; border-radius: 12px; }
@@ -167,7 +170,16 @@
   .cor { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px 6px; font-size: 11.5px; font-weight: 500;
     background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 16px; }
   .cor.on { background: var(--rosa); box-shadow: 0 3px 0 var(--linha); }
-  #adotar { width: 100%; margin-top: 8px; padding: 14px; font-size: 19px; }
+  #adotar, #cEnviar { width: 100%; margin-top: 8px; padding: 14px; font-size: 19px; }
+  .idiomas { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; }
+  .idiomas button { padding: 4px 12px; font-size: 13px; font-weight: 600; background: var(--cartao); border: 2px solid var(--linha); border-radius: 99px; }
+  .idiomas .on { background: var(--rosa); }
+  #conta { position: fixed; inset: 0; z-index: 6; overflow: auto; background: var(--papel);
+    background-image: radial-gradient(#f2e3cf 1.3px, transparent 1.4px); background-size: 18px 18px; }
+  #conta[hidden] { display: none; }
+  #conta .campo small { display: block; margin-top: 4px; color: var(--suave); font-size: 12.5px; }
+  .erro { margin: 8px 0 0; padding: 8px 12px; border-radius: 12px; background: #fde0e0; border: 2px solid #e8a3a3; font-size: 14px; text-align: left; }
+  .erro[hidden] { display: none; }
 
   #aviso { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 64px); z-index: 20; max-width: 88vw; padding: 9px 16px;
     transform: translate(-50%, -8px); background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 16px; box-shadow: 0 3px 0 var(--linha);
@@ -222,38 +234,53 @@
 
 <div id="app" hidden>
   <header id="topo">
-    <button class="pilula" id="pMoedas" data-abre="comida" aria-label="Moedas"><svg class="ic"><use href="#i-moeda"/></svg><b id="nMoedas">0</b></button>
+    <button class="pilula" id="pMoedas" data-abre="comida" data-ta="nav.moedas"><svg class="ic"><use href="#i-moeda"/></svg><b id="nMoedas">0</b></button>
     <div class="pilula" id="pNivel"><b id="nNivel">Nv 1</b><span class="barra"><i id="xpBarra" style="width:0"></i></span></div>
-    <button class="redondo" data-abre="ajustes" aria-label="Ajustes"><svg class="ic"><use href="#i-ajustes"/></svg></button>
+    <button class="redondo" data-abre="ajustes" data-ta="nav.ajustes"><svg class="ic"><use href="#i-ajustes"/></svg></button>
   </header>
-  <main id="palco"><canvas id="tela" aria-label="Quarto do gatinho"></canvas></main>
+  <main id="palco"><canvas id="tela" data-ta="quarto"></canvas></main>
   <section id="cartao" data-fase="parado">
     <div id="alerta" hidden></div>
-    <div id="fase"></div>
-    <div id="tempo">25:00</div>
+    <div class="linhaTopo"><span id="fase"></span><button id="tarefaAtual" data-abre="tarefas"></button></div>
+    <div class="linhaMeio"><div id="tempo">25:00</div><div id="botoes"></div></div>
     <div class="trilho"><div id="progresso"></div></div>
-    <button id="tarefaAtual" data-abre="tarefas"></button>
-    <div id="botoes"></div>
   </section>
   <nav id="nav">
-    <button data-abre="comida"><svg class="ic"><use href="#i-comida"/></svg><span>Comida</span></button>
-    <button data-abre="loja"><svg class="ic"><use href="#i-loja"/></svg><span>Loja</span></button>
+    <button data-abre="comida"><svg class="ic"><use href="#i-comida"/></svg><span data-t="nav.comida"></span></button>
+    <button data-abre="loja"><svg class="ic"><use href="#i-loja"/></svg><span data-t="nav.loja"></span></button>
     <button data-abre="gato"><svg class="ic"><use href="#i-gato"/></svg><span id="navNome">Gato</span></button>
-    <button data-abre="tarefas"><svg class="ic"><use href="#i-tarefas"/></svg><span>Tarefas</span></button>
+    <button data-abre="tarefas"><svg class="ic"><use href="#i-tarefas"/></svg><span data-t="nav.tarefas"></span></button>
   </nav>
 </div>
 
 <div id="adocao" hidden>
   <div class="adocao">
+    <div class="idiomas"></div>
     <h1>PomodoroCat</h1>
-    <p class="sub">Vamos adotar seu gatinho?</p>
+    <p class="sub" data-t="adocao.sub"></p>
     <canvas id="previa"></canvas>
-    <label class="campo"><span>Nome</span><input type="text" id="aNome" maxlength="14" placeholder="Ex.: Mimi" autocomplete="off"></label>
-    <div class="campo"><span>É</span><div class="opcoes" id="aGenero">
-      <button class="bt" data-v="m">Menino</button><button class="bt" data-v="f">Menina</button></div></div>
-    <div class="campo"><span>Cor</span><div class="cores" id="aCores"></div></div>
-    <div class="campo"><span>Pelo</span><div class="opcoes" id="aPelo"></div></div>
-    <button class="bt rosa" id="adotar" disabled>Adotar 🐾</button>
+    <label class="campo"><span data-t="adocao.nome"></span><input type="text" id="aNome" maxlength="14" data-tp="adocao.exNome" autocomplete="off"></label>
+    <div class="campo"><span data-t="adocao.genero"></span><div class="opcoes" id="aGenero">
+      <button class="bt" data-v="m" data-t="adocao.menino"></button><button class="bt" data-v="f" data-t="adocao.menina"></button></div></div>
+    <div class="campo"><span data-t="adocao.cor"></span><div class="cores" id="aCores"></div></div>
+    <div class="campo"><span data-t="adocao.pelo"></span><div class="opcoes" id="aPelo"></div></div>
+    <button class="bt rosa" id="adotar" disabled data-t="adocao.adotar"></button>
+  </div>
+</div>
+
+<div id="conta" hidden>
+  <div class="adocao">
+    <div class="idiomas"></div>
+    <h1>PomodoroCat</h1>
+    <p class="sub" data-t="login.sub"></p>
+    <div class="abas" id="cAbas"><button data-modo="criar" class="on" data-t="login.criar"></button><button data-modo="entrar" data-t="login.tenho"></button></div>
+    <form id="cForm" novalidate>
+      <label class="campo"><span data-t="login.email"></span><input type="email" id="cEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></label>
+      <label class="campo"><span data-t="login.senha"></span><input type="password" id="cSenha" autocomplete="new-password"><small data-t="login.senhaDica"></small></label>
+      <label class="campo" id="cRepete"><span data-t="login.senha2"></span><input type="password" id="cSenha2" autocomplete="new-password"></label>
+      <p class="erro" id="cErro" hidden></p>
+      <button class="bt rosa" id="cEnviar"></button>
+    </form>
   </div>
 </div>
 
