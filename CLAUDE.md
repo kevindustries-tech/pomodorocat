@@ -15,6 +15,8 @@ Pomodoro com bichinho virtual, estilo Usagi Shima / Bob Goods: um gatinho num qu
 pastéis. Cada pomodoro de 25 min vale 1 moeda; moeda compra comida (o gato reage conforme o
 preço), roupinhas e móveis. Sem pomodoro ele chora, adoece e, em 15 dias, vira estrelinha.
 
+Publicado em https://kevindustries-tech.github.io/pomodorocat/ — a Bianca usa o app instalado de lá.
+
 **Sem build e sem bundler**: HTML + ES modules + Canvas 2D. Nenhuma imagem: o gato, o quarto e
 os móveis são desenhados em código, então cor, pelagem, pelo e roupinha são só parâmetros.
 
