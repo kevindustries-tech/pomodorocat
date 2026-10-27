@@ -285,16 +285,22 @@ export function caixaNoQuarto(id, ext) {
   const it = porId(id), [x, y, w, h] = CAIXA[id], [ox, oy] = deslocamento(it.slot, ext);
   return [x + ox, y + oy, w, h];
 }
-const contornoQuarto = ext => [8 - ext.dx, 8 - ext.dy, W + 2 * ext.dx - 16, H + ext.dy - 16];
+// (Bianca, 2026-10-27) Sem moldura: o quarto vai de ponta a ponta, sem borda, sombra nem canto redondo.
+// MOLDURA = true volta à maquete com borda marrom.
+const MOLDURA = false;
+const RAIO = MOLDURA ? 26 : 0;
+const contornoQuarto = ext => MOLDURA
+  ? [8 - ext.dx, 8 - ext.dy, W + 2 * ext.dx - 16, H + ext.dy - 16]
+  : [-ext.dx, -ext.dy, W + 2 * ext.dx, H + ext.dy];
 
 // ordem de trás para a frente
 const ORDEM = ['janela', 'quadro', 'prateleira', 'lustre', 'estante', 'planta', 'abajur', 'cama', 'tapete', 'areia'];
 
 export function desenharQuarto(ctx, vis, t, c, ext = SEM_EXTRA) {
   const [x, y, w, h] = contornoQuarto(ext);
-  ctx.fillStyle = 'rgba(90,62,54,.13)'; rr(ctx, x, y + 7, w, h, 26); ctx.fill();         // sombra de maquete
+  if (MOLDURA) { ctx.fillStyle = 'rgba(90,62,54,.13)'; rr(ctx, x, y + 7, w, h, RAIO); ctx.fill(); }   // sombra de maquete
   ctx.save();
-  rr(ctx, x, y, w, h, 26); ctx.clip();
+  rr(ctx, x, y, w, h, RAIO); ctx.clip();
   desenharParede(ctx, porId(vis.usando.parede) || porId('parede-creme'), -ext.dx, -ext.dy, W + 2 * ext.dx, CHAO + ext.dy);
   chao(ctx, ext);
   if (!c.noite) {                                                                       // luz da janela no chão
@@ -313,7 +319,7 @@ export function desenharQuarto(ctx, vis, t, c, ext = SEM_EXTRA) {
 export function desenharNoite(ctx, vis, c, ext = SEM_EXTRA) {
   const [x, y, w, h] = contornoQuarto(ext);
   ctx.save();
-  rr(ctx, x, y, w, h, 26); ctx.clip();
+  rr(ctx, x, y, w, h, RAIO); ctx.clip();
   ctx.fillStyle = 'rgba(45,45,100,.16)'; ctx.fillRect(x, y, w, h);
   const [ax, ay] = deslocamento('abajur', ext), [lx, ly] = deslocamento('lustre', ext);
   if (vis.usando.abajur) brilho(ctx, 359 + ax, 250 + ay, 130);
@@ -322,8 +328,9 @@ export function desenharNoite(ctx, vis, c, ext = SEM_EXTRA) {
 }
 
 export function desenharMoldura(ctx, ext = SEM_EXTRA) {
+  if (!MOLDURA) return;
   const [x, y, w, h] = contornoQuarto(ext);
-  rr(ctx, x, y, w, h, 26); ctx.lineWidth = 4; ctx.strokeStyle = LINHA; ctx.stroke();
+  rr(ctx, x, y, w, h, RAIO); ctx.lineWidth = 4; ctx.strokeStyle = LINHA; ctx.stroke();
 }
 
 export function desenharTigela(ctx, comida) {
