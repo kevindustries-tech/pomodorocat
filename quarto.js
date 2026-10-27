@@ -277,7 +277,9 @@ const ANCORA = {
 export const SEM_EXTRA = { dx: 0, dy: 0 };
 export function deslocamento(slot, ext) {
   const [ax, ay] = ANCORA[slot] || [0, 0];
-  return [ax * ext.dx, ay * ext.dy];
+  // as pílulas de moedas/nível ficam no alto do quarto: com o teto alto, o lustre desce para não sumir atrás delas
+  const folgaHud = slot === 'lustre' ? Math.min(ext.dy, 40) : 0;
+  return [ax * ext.dx, ay * ext.dy + folgaHud];
 }
 export function caixaNoQuarto(id, ext) {
   const it = porId(id), [x, y, w, h] = CAIXA[id], [ox, oy] = deslocamento(it.slot, ext);

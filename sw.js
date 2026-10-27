@@ -1,6 +1,6 @@
 // Service worker: o app funciona offline. Rede primeiro (pega atualização), cache se estiver sem internet.
 // MEXEU EM QUALQUER ARQUIVO DA LISTA? Suba o CACHE, senão o app instalado continua servindo a versão velha.
-const CACHE = 'pomodorocat-v0.2';
+const CACHE = 'pomodorocat-v0.3';
 const APP = ['./', './index.html', './app.js', './estado.js', './regras.js', './catalogo.js', './gato.js', './quarto.js', './cena.js', './som.js', './i18n.js', './nuvem.js',
   './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'];
 

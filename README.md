@@ -1,4 +1,4 @@
-# PomodoroCat
+# Study Cat
 
 Pomodoro com um gatinho num quarto em tons pastéis. Cada foco de 25 minutos vira uma moeda;
 com moeda você alimenta, veste e decora. Sem pomodoro, ele sente sua falta.

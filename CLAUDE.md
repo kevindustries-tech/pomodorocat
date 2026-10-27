@@ -1,4 +1,4 @@
-# CLAUDE.md — PomodoroCat
+# CLAUDE.md — Study Cat (antes PomodoroCat)
 
 Responda sempre em **português**. Este repositório é só o app. O resto da vida do Kevin fica no vault
 e **não se discute aqui**.
@@ -16,6 +16,8 @@ pastéis. Cada pomodoro de 25 min vale 1 moeda; moeda compra comida (o gato reag
 preço), roupinhas e móveis. Sem pomodoro ele chora, adoece e, em 15 dias, vira estrelinha.
 
 Publicado em https://kevindustries-tech.github.io/pomodorocat/ — a Bianca usa o app instalado de lá.
+O nome que aparece é **Study Cat** (desde 2026-10-27). Repositório, endereço e chaves do
+`localStorage` continuam `pomodorocat`: trocar o endereço quebraria o app instalado no celular dela.
 
 **Sem build e sem bundler**: HTML + ES modules + Canvas 2D. Nenhuma imagem: o gato, o quarto e
 os móveis são desenhados em código, então cor, pelagem, pelo e roupinha são só parâmetros.

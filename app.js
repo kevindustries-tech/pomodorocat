@@ -9,7 +9,7 @@ import { miniatura } from './quarto.js';
 import * as Som from './som.js';
 import { t, IDIOMAS, definirIdioma, detectarIdioma, nomeItem, nomePelagem, traduzirPagina } from './i18n.js';
 
-const VERSAO = '0.2';
+const VERSAO = '0.3';
 const $ = sel => document.querySelector(sel);
 const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const moeda = n => `<span class="m"><svg class="ic"><use href="#i-moeda"/></svg>${n}</span>`;
@@ -261,7 +261,7 @@ function relogio() {
   const txt = `${String(Math.floor(seg / 60)).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}`;
   if (txt !== ultimoRelogio) {
     ultimoRelogio = txt; $('#tempo').textContent = txt;
-    document.title = tm.rodando ? `${txt} · PomodoroCat` : 'PomodoroCat';
+    document.title = tm.rodando ? `${txt} · Study Cat` : 'Study Cat';
   }
   const prog = (tm.fase === 'foco' || tm.fase === 'pausa') && tm.duracao ? 1 - ms / tm.duracao : 0;
   const pc = Math.round(prog * 1000) / 10;
@@ -299,7 +299,7 @@ function renderCartao() {
     rotulo = t('timer.parado');
     html = btn('comecar', t('bt.comecar'), 'rosa');
   } else if (tm.fase === 'foco') {
-    rotulo = tm.rodando ? t('timer.focando', vg()) : t('timer.focoPausado');
+    rotulo = tm.rodando ? t(s.saude === 'ok' ? 'timer.focando' : 'timer.focandoSo', vg()) : t('timer.focoPausado');
     html = (tm.rodando ? (s.ajustes.pausar ? btn('pausar', t('bt.pausar')) : '') : btn('retomar', t('bt.continuar'), 'rosa')) + btn('desistir', t('bt.desistir'));
   } else if (tm.fase === 'fimFoco') {
     rotulo = t('timer.fimFoco');

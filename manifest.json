@@ -1,4 +1,4 @@
-{ "name": "PomodoroCat", "short_name": "PomodoroCat", "start_url": "./index.html", "scope": "./", "display": "standalone",
+{ "name": "Study Cat", "short_name": "Study Cat", "start_url": "./index.html", "scope": "./", "display": "standalone",
   "background_color": "#fdf6ec", "theme_color": "#fdf6ec", "orientation": "portrait", "lang": "pt-BR",
   "icons": [ { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
              { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },

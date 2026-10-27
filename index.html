@@ -6,14 +6,14 @@
 <meta name="theme-color" content="#fdf6ec">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="PomodoroCat">
+<meta name="apple-mobile-web-app-title" content="Study Cat">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-<title>PomodoroCat</title>
+<title>Study Cat</title>
 <style>
   :root {
     --papel: #fdf6ec; --cartao: #fffaf3; --linha: #5a3e36; --suave: #9b8578; --trilho: #f1e4d3;
@@ -27,24 +27,28 @@
   button { font: inherit; color: inherit; cursor: pointer; }
   .ic { width: 20px; height: 20px; flex: none; }
 
-  #app { height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px;
-    padding: calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 10px); }
+  #app { height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px;
+    padding: calc(env(safe-area-inset-top) + 6px) 14px calc(env(safe-area-inset-bottom) + 8px); }
   #app[hidden] { display: none; }
 
-  #topo { display: flex; align-items: center; gap: 8px; }
-  .pilula { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px 0 8px; background: var(--cartao);
-    border: 2.5px solid var(--linha); border-radius: 999px; box-shadow: 0 3px 0 var(--linha); font-weight: 600; font-size: 18px; }
-  .pilula .ic { width: 24px; height: 24px; }
-  #pNivel { flex: 1; padding-left: 14px; gap: 10px; }
+  /* Barra de cima pequena e POR CIMA do quarto, no alto da parede (pedido da Bianca: o quarto é o foco). */
+  #cenaBox { position: relative; }
+  #topo { position: absolute; top: 13px; left: 13px; right: 13px; z-index: 2; display: flex; align-items: center; gap: 6px; pointer-events: none; }
+  #topo > * { pointer-events: auto; }
+  .pilula { display: flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px 0 5px; background: rgba(255,250,243,.9);
+    border: 2px solid var(--linha); border-radius: 999px; box-shadow: 0 2px 0 var(--linha); font-weight: 600; font-size: 15px; }
+  .pilula .ic { width: 20px; height: 20px; }
+  #pNivel { flex: 1; max-width: 170px; padding-left: 10px; gap: 7px; }
   #pNivel b { font-weight: 600; white-space: nowrap; }
+  #pNivel .barra { height: 9px; }
   .barra { flex: 1; display: block; height: 12px; border-radius: 99px; background: var(--trilho); border: 2px solid var(--linha); overflow: hidden; }
   .barra i { display: block; height: 100%; background: var(--verde); border-right: 2px solid var(--linha); transition: width .4s; }
-  .redondo { width: 42px; height: 42px; flex: none; display: grid; place-items: center; padding: 0; border-radius: 50%;
-    border: 2.5px solid var(--linha); background: var(--cartao); box-shadow: 0 3px 0 var(--linha); }
-  .redondo .ic { width: 26px; height: 26px; }
+  .redondo { width: 32px; height: 32px; flex: none; margin-left: auto; display: grid; place-items: center; padding: 0; border-radius: 50%;
+    border: 2px solid var(--linha); background: rgba(255,250,243,.9); box-shadow: 0 2px 0 var(--linha); }
+  .redondo .ic { width: 21px; height: 21px; }
   .redondo:active, .pilula:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--linha); }
 
-  #palco { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  #palco { flex: 1; min-height: 0; margin: 0 -10px; display: flex; align-items: center; justify-content: center; }
   #tela { display: block; touch-action: manipulation; }
 
   #cartao { background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 22px; box-shadow: 0 4px 0 var(--linha);
@@ -75,12 +79,13 @@
   .bt[disabled] { opacity: .45; cursor: default; box-shadow: 0 2px 0 var(--linha); }
   .bt.certeza { background: #fbd0d0; }
 
-  #nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  #nav button { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; padding: 7px 2px 5px;
-    font-size: 13px; font-weight: 600; background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 18px; box-shadow: 0 3px 0 var(--linha); }
-  #nav button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px; }
-  #nav button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--linha); }
-  #nav .ic { width: 30px; height: 30px; }
+  /* Barra de baixo baixinha: ícone e nome lado a lado (pedido da Bianca). */
+  #nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  #nav button { display: flex; align-items: center; justify-content: center; gap: 3px; min-width: 0; height: 36px; padding: 0 3px;
+    font-size: 12px; font-weight: 600; background: var(--cartao); border: 2px solid var(--linha); border-radius: 14px; box-shadow: 0 2px 0 var(--linha); }
+  #nav button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #nav button:active { transform: translateY(2px); box-shadow: 0 0 0 var(--linha); }
+  #nav .ic { width: 20px; height: 20px; }
 
   /* folha de baixo */
   #folha { position: fixed; inset: 0; z-index: 10; display: flex; align-items: flex-end; justify-content: center;
@@ -233,12 +238,14 @@
 </svg>
 
 <div id="app" hidden>
-  <header id="topo">
-    <button class="pilula" id="pMoedas" data-abre="comida" data-ta="nav.moedas"><svg class="ic"><use href="#i-moeda"/></svg><b id="nMoedas">0</b></button>
-    <div class="pilula" id="pNivel"><b id="nNivel">Nv 1</b><span class="barra"><i id="xpBarra" style="width:0"></i></span></div>
-    <button class="redondo" data-abre="ajustes" data-ta="nav.ajustes"><svg class="ic"><use href="#i-ajustes"/></svg></button>
-  </header>
-  <main id="palco"><canvas id="tela" data-ta="quarto"></canvas></main>
+  <main id="palco"><div id="cenaBox">
+    <canvas id="tela" data-ta="quarto"></canvas>
+    <header id="topo">
+      <button class="pilula" id="pMoedas" data-abre="comida" data-ta="nav.moedas"><svg class="ic"><use href="#i-moeda"/></svg><b id="nMoedas">0</b></button>
+      <div class="pilula" id="pNivel"><b id="nNivel">Nv 1</b><span class="barra"><i id="xpBarra" style="width:0"></i></span></div>
+      <button class="redondo" data-abre="ajustes" data-ta="nav.ajustes"><svg class="ic"><use href="#i-ajustes"/></svg></button>
+    </header>
+  </div></main>
   <section id="cartao" data-fase="parado">
     <div id="alerta" hidden></div>
     <div class="linhaTopo"><span id="fase"></span><button id="tarefaAtual" data-abre="tarefas"></button></div>
@@ -256,7 +263,7 @@
 <div id="adocao" hidden>
   <div class="adocao">
     <div class="idiomas"></div>
-    <h1>PomodoroCat</h1>
+    <h1>Study Cat</h1>
     <p class="sub" data-t="adocao.sub"></p>
     <canvas id="previa"></canvas>
     <label class="campo"><span data-t="adocao.nome"></span><input type="text" id="aNome" maxlength="14" data-tp="adocao.exNome" autocomplete="off"></label>
@@ -271,7 +278,7 @@
 <div id="conta" hidden>
   <div class="adocao">
     <div class="idiomas"></div>
-    <h1>PomodoroCat</h1>
+    <h1>Study Cat</h1>
     <p class="sub" data-t="login.sub"></p>
     <div class="abas" id="cAbas"><button data-modo="criar" class="on" data-t="login.criar"></button><button data-modo="entrar" data-t="login.tenho"></button></div>
     <form id="cForm" novalidate>
