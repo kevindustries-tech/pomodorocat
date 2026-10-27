@@ -19,6 +19,9 @@ Publicado em https://kevindustries-tech.github.io/pomodorocat/ — a Bianca usa 
 O nome que aparece é **Study Cat** (desde 2026-10-27). Repositório, endereço e chaves do
 `localStorage` continuam `pomodorocat`: trocar o endereço quebraria o app instalado no celular dela.
 
+O gato **não tem contorno** (pedido da Bianca, 2026-10-27): cada parte faz uma sombrinha macia
+(`CONTORNO` e `silhueta()` em `gato.js`). O quarto, os objetos e as roupinhas continuam com traço.
+
 **Sem build e sem bundler**: HTML + ES modules + Canvas 2D. Nenhuma imagem: o gato, o quarto e
 os móveis são desenhados em código, então cor, pelagem, pelo e roupinha são só parâmetros.
 

@@ -21,8 +21,8 @@
     const a = -Math.PI / 2 + k * Math.PI * 2 / 5, b = a + Math.PI / 5;
     x.lineTo(Math.cos(a) * 17, Math.sin(a) * 9); x.lineTo(Math.cos(b) * 6, Math.sin(b) * 4);
   }
-  x.closePath(); x.fill(); x.stroke();
-  x.beginPath(); x.moveTo(0, -3); x.quadraticCurveTo(2, -14, 7, -18); x.lineWidth = 6; x.stroke(); x.lineWidth = 3; x.strokeStyle = '#8fce86'; x.stroke();
+  x.closePath(); x.fill();                          // sem contorno, como o gato (Bianca, 2026-10-27)
+  x.beginPath(); x.moveTo(0, -3); x.quadraticCurveTo(2, -14, 7, -18); x.lineCap = 'round'; x.lineWidth = 4; x.strokeStyle = '#6fb766'; x.stroke();
   x.restore();
   document.title = 'pronto';
 </script></body></html>

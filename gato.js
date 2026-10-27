@@ -1,6 +1,6 @@
 // O gatinho, desenhado em Canvas 2D. Não usa imagem nenhuma: cor, pelagem, tamanho do pelo
 // e roupinha mudam trocando um parâmetro, sem precisar de um desenho para cada combinação.
-// Estilo Usagi Shima: contorno marrom grosso, cor chapada, formas redondas, cabeção de chibi.
+// Estilo: cor chapada, formas redondas, cabeção de chibi, SEM contorno no gato (sombrinha macia no lugar).
 //
 // Coordenadas locais: origem no chão entre as patas, para cima é y negativo.
 // Cabeça com ~100 de largura; gato inteiro com ~150 de altura (sem chapéu).
@@ -26,6 +26,25 @@ export const PELOS = { curto: 'Curto', medio: 'Médio', longo: 'Longo' };
 const CAB = { y: -90, rx: 50, ry: 42 };
 const CORPO = { y: -31, rx: 37, ry: 31 };
 const PESCOCO_Y = -50;
+
+// (Bianca, 2026-10-27) O gatinho NÃO tem contorno marrom. Sem a linha, cabeça, corpo e patas da mesma
+// cor virariam uma massa só e o gato branco sumiria na parede creme; por isso cada parte do corpo
+// faz uma sombrinha macia (a cabeça no corpo, a pata no peito, o gato todo na parede).
+// Rosto, roupinhas, livro e objetos continuam com traço. CONTORNO = true volta ao desenho antigo.
+const CONTORNO = false;
+function silhueta(ctx, desenhar) {
+  ctx.save();
+  const m = ctx.getTransform(), k = Math.hypot(m.a, m.b);   // a sombra é em pixel de tela: acompanha a escala
+  ctx.shadowColor = 'rgba(90,62,54,.28)'; ctx.shadowBlur = 6 * k; ctx.shadowOffsetY = 1.5 * k;
+  desenhar();
+  ctx.restore();
+}
+// Parte do corpo: preenche e, só no modo antigo, contorna.
+function parte(ctx, cor, path, lw = 3) {
+  if (!CONTORNO) { silhueta(ctx, () => { ctx.fillStyle = cor; path ? ctx.fill(path) : ctx.fill(); }); return; }
+  ctx.fillStyle = cor; path ? ctx.fill(path) : ctx.fill();
+  ctx.lineWidth = lw; ctx.strokeStyle = LINHA; path ? ctx.stroke(path) : ctx.stroke();
+}
 
 const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 function elipse(ctx, x, y, rx, ry, rot = 0) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot, 0, TAU); }
@@ -94,8 +113,7 @@ function orelha(ctx, lado, pal, cor, caida, twitch, pelo) {
   const [A, T, B] = [A0, T0, B0].map(q => girar(q, piv, ang));
   const p = new Path2D();
   trianguloRedondo(p, A, T, B, 10, 7);
-  ctx.fillStyle = cor; ctx.fill(p);
-  ctx.lineWidth = 3; ctx.strokeStyle = LINHA; ctx.stroke(p);
+  parte(ctx, cor, p);
   const c = [(A[0] + T[0] + B[0]) / 3, (A[1] + T[1] + B[1]) / 3 + 3];
   const enc = q => [c[0] + (q[0] - c[0]) * 0.52, c[1] + (q[1] - c[1]) * 0.52];
   const pi = new Path2D();
@@ -123,9 +141,10 @@ function cauda(ctx, pal, pelo, fase) {
   p.bezierCurveTo(56, -8, 64 + fase * 5, -44, 50 + fase * 16, -76 + Math.abs(fase) * 5);
   ctx.save();
   ctx.lineCap = 'round';
-  ctx.lineWidth = w + 6; ctx.strokeStyle = LINHA; ctx.stroke(p);
+  if (CONTORNO) { ctx.lineWidth = w + 6; ctx.strokeStyle = LINHA; ctx.stroke(p); }
   const cor = pal.padrao === 'frajola' || pal.padrao === 'siames' || pal.padrao === 'tricolor' ? pal.mancha : pal.base;
-  ctx.lineWidth = w; ctx.strokeStyle = cor; ctx.stroke(p);
+  const fio = () => { ctx.lineWidth = w; ctx.strokeStyle = cor; ctx.stroke(p); };
+  if (CONTORNO) fio(); else silhueta(ctx, fio);
   if (pal.padrao === 'rajado' || pal.padrao === 'tricolor') {
     ctx.setLineDash([5, 9]); ctx.lineCap = 'butt';
     ctx.strokeStyle = pal.padrao === 'rajado' ? pal.listra : pal.mancha2;
@@ -147,7 +166,7 @@ function tufoPeito(ctx, pelo) {
     ctx.quadraticCurveTo(31, -43, 29, -66);
     ctx.closePath();
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(90,62,54,.28)'; ctx.stroke();
+    if (CONTORNO) { ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(90,62,54,.28)'; ctx.stroke(); }
     ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(90,62,54,.18)'; ctx.lineCap = 'round';
     for (const l of [-1, 1]) { ctx.beginPath(); ctx.moveTo(l * 9, -50); ctx.quadraticCurveTo(l * 11, -42, l * 8, -36); ctx.stroke(); }
     return;
@@ -167,7 +186,7 @@ function sueter(ctx) {
 }
 
 function corpo(ctx, pal, F, pelo, roupaCorpo) {
-  ctx.fillStyle = pal.base; ctx.fill(F.corpo);
+  parte(ctx, pal.base, F.corpo);
   ctx.save();
   ctx.clip(F.corpo);
   mancha(ctx, pal.sombra, 0, 6, 46, 16, 0);              // barriguinha mais escura embaixo: dá volume
@@ -190,19 +209,18 @@ function corpo(ctx, pal, F, pelo, roupaCorpo) {
   if (roupaCorpo === 'sueter') sueter(ctx);
   else if (pelo !== 'curto') tufoPeito(ctx, pelo);
   ctx.restore();
-  ctx.lineWidth = 3; ctx.strokeStyle = LINHA; ctx.stroke(F.corpo);
 }
 
 function pata(ctx, x, y, cor) {
   elipse(ctx, x, y, 10, 7.5);
-  contornar(ctx, cor, 2.6);
-  ctx.lineWidth = 1.8;
+  parte(ctx, cor, null, 2.6);
+  ctx.lineWidth = 1.8; ctx.strokeStyle = CONTORNO ? LINHA : 'rgba(90,62,54,.4)';
   linha(ctx, x - 3.2, y + 2, x - 3.2, y + 5.5);
   linha(ctx, x + 3.2, y + 2, x + 3.2, y + 5.5);
 }
 const corPata = pal => pal.padrao === 'siames' ? pal.mancha : pal.base;
 function patasTraseiras(ctx, pal) {
-  for (const l of [-1, 1]) { elipse(ctx, l * 29, -4, 12, 7); contornar(ctx, corPata(pal), 2.6); }
+  for (const l of [-1, 1]) { elipse(ctx, l * 29, -4, 12, 7); parte(ctx, corPata(pal), null, 2.6); }
 }
 function patas(ctx, pal, modo) {
   const c = corPata(pal);
@@ -215,7 +233,7 @@ function patas(ctx, pal, modo) {
 }
 
 function cabeca(ctx, pal, F) {
-  ctx.fillStyle = pal.base; ctx.fill(F.cab);
+  parte(ctx, pal.base, F.cab);
   ctx.save();
   ctx.clip(F.cab);
   switch (pal.padrao) {
@@ -244,7 +262,6 @@ function cabeca(ctx, pal, F) {
   if (pal.focinho) mancha(ctx, 'rgba(255,255,255,.45)', 0, -73, 17, 11, 0);
   mancha(ctx, 'rgba(255,255,255,.16)', -20, -114, 17, 9, -0.3);   // brilho no alto da cabeça
   ctx.restore();
-  ctx.lineWidth = 3; ctx.strokeStyle = LINHA; ctx.stroke(F.cab);
 }
 
 // ---------- rosto ----------
@@ -493,7 +510,7 @@ function asas(ctx, t) {
     const p = new Path2D();
     p.moveTo(0, 0); p.bezierCurveTo(l * 30, -26, l * 48, -8, l * 40, 8);
     p.bezierCurveTo(l * 30, 4, l * 28, 14, l * 18, 10); p.bezierCurveTo(l * 14, 16, l * 4, 12, 0, 0);
-    ctx.fillStyle = '#fff'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = LINHA; ctx.stroke(p);
+    parte(ctx, '#fff', p, 2.6);
     ctx.restore();
   }
 }

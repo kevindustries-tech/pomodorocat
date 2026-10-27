@@ -9,7 +9,7 @@ import { miniatura } from './quarto.js';
 import * as Som from './som.js';
 import { t, IDIOMAS, definirIdioma, detectarIdioma, nomeItem, nomePelagem, traduzirPagina } from './i18n.js';
 
-const VERSAO = '0.3';
+const VERSAO = '0.3.1';
 const $ = sel => document.querySelector(sel);
 const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const moeda = n => `<span class="m"><svg class="ic"><use href="#i-moeda"/></svg>${n}</span>`;
