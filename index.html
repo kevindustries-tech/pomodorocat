@@ -27,12 +27,11 @@
   button { font: inherit; color: inherit; cursor: pointer; }
   .ic { width: 20px; height: 20px; flex: none; }
 
-  #app { height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px;
+  #app { position: relative; height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px;
     padding: calc(env(safe-area-inset-top) + 6px) 14px calc(env(safe-area-inset-bottom) + 8px); }
   #app[hidden] { display: none; }
 
   /* Barra de cima pequena e POR CIMA do quarto, no alto da parede (pedido da Bianca: o quarto é o foco). */
-  #cenaBox { position: relative; }
   #topo { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 2; display: flex; align-items: center; gap: 6px; pointer-events: none; }
   #topo > * { pointer-events: auto; }
   .pilula { display: flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px 0 5px; background: rgba(255,250,243,.9);
@@ -48,8 +47,12 @@
   .redondo .ic { width: 21px; height: 21px; }
   .redondo:active, .pilula:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--linha); }
 
-  /* quarto de ponta a ponta e colado no topo, sem borda (pedido da Bianca) */
-  #palco { flex: 1; min-height: 0; margin: -6px -14px 0; display: flex; align-items: center; justify-content: center; }
+  /* O quarto é o FUNDO da tela inteira (pedido da Bianca): o chão continua por trás do cartão e dos
+     botões, que ficam na frente. O app.js encaixa o desenho para o gato ficar acima do cartão. */
+  #palco { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+  #cenaBox { position: absolute; inset: 0; }
+  #cartao, #nav { position: relative; z-index: 1; }
+  #cartao { margin-top: auto; }
   #tela { display: block; touch-action: manipulation; }
 
   #cartao { background: var(--cartao); border: 2.5px solid var(--linha); border-radius: 22px; box-shadow: 0 4px 0 var(--linha);

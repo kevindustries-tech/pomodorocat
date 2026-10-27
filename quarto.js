@@ -39,13 +39,18 @@ export function desenharParede(ctx, p, x, y, w, h, esc = 1) {
 }
 
 function chao(ctx, ext) {
-  const x0 = -ext.dx, x1 = W + ext.dx;
-  ctx.fillStyle = '#f1d9b5'; ctx.fillRect(x0, CHAO, x1 - x0, H - CHAO);
+  const x0 = -ext.dx, x1 = W + ext.dx, fim = H + (ext.baixo || 0);
+  ctx.fillStyle = '#f1d9b5'; ctx.fillRect(x0, CHAO, x1 - x0, fim - CHAO);
   ctx.strokeStyle = 'rgba(90,62,54,.15)'; ctx.lineWidth = 2;
-  const faixas = [CHAO, CHAO + 30, CHAO + 66, CHAO + 106, H];
+  // tábuas cada vez mais largas para a frente (perspectiva); continuam por trás dos botões
+  const faixas = [CHAO, CHAO + 30, CHAO + 66, CHAO + 106];
+  for (let y = CHAO + 150, larg = 46; y < fim + larg; y += larg, larg += 4) faixas.push(y);
+  faixas.push(fim + 60);
   for (const y of faixas.slice(1, -1)) linha(ctx, x0, y, x1, y);
-  [70, 150, 44, 118].forEach((ini, k) => {                        // emendas das tábuas, desencontradas
-    for (let x = ini - 170 * Math.ceil((ini - x0) / 170); x < x1; x += 170) linha(ctx, x, faixas[k], x, faixas[k + 1]);
+  const inicios = [70, 150, 44, 118];
+  faixas.slice(0, -1).forEach((y0, k) => {                        // emendas das tábuas, desencontradas
+    const ini = inicios[k % 4];
+    for (let x = ini - 170 * Math.ceil((ini - x0) / 170); x < x1; x += 170) linha(ctx, x, y0, x, faixas[k + 1]);
   });
   ctx.fillStyle = '#fff6ea'; ctx.fillRect(x0, CHAO - 12, x1 - x0, 12);                 // rodapé
   ctx.strokeStyle = LINHA; ctx.lineWidth = 2.5;
@@ -291,7 +296,7 @@ const MOLDURA = false;
 const RAIO = MOLDURA ? 26 : 0;
 const contornoQuarto = ext => MOLDURA
   ? [8 - ext.dx, 8 - ext.dy, W + 2 * ext.dx - 16, H + ext.dy - 16]
-  : [-ext.dx, -ext.dy, W + 2 * ext.dx, H + ext.dy];
+  : [-ext.dx, -ext.dy, W + 2 * ext.dx, H + ext.dy + (ext.baixo || 0)];
 
 // ordem de trás para a frente
 const ORDEM = ['janela', 'quadro', 'prateleira', 'lustre', 'estante', 'planta', 'abajur', 'cama', 'tapete', 'areia'];

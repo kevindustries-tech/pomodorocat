@@ -1,6 +1,6 @@
 // O gatinho, desenhado em Canvas 2D. Não usa imagem nenhuma: cor, pelagem, tamanho do pelo
 // e roupinha mudam trocando um parâmetro, sem precisar de um desenho para cada combinação.
-// Estilo: cor chapada, formas redondas, cabeção de chibi, SEM contorno no gato (sombrinha macia no lugar).
+// Estilo Usagi Shima: contorno marrom grosso, cor chapada, formas redondas, cabeção de chibi.
 //
 // Coordenadas locais: origem no chão entre as patas, para cima é y negativo.
 // Cabeça com ~100 de largura; gato inteiro com ~150 de altura (sem chapéu).
@@ -27,11 +27,10 @@ const CAB = { y: -90, rx: 50, ry: 42 };
 const CORPO = { y: -31, rx: 37, ry: 31 };
 const PESCOCO_Y = -50;
 
-// (Bianca, 2026-10-27) O gatinho NÃO tem contorno marrom. Sem a linha, cabeça, corpo e patas da mesma
-// cor virariam uma massa só e o gato branco sumiria na parede creme; por isso cada parte do corpo
-// faz uma sombrinha macia (a cabeça no corpo, a pata no peito, o gato todo na parede).
-// Rosto, roupinhas, livro e objetos continuam com traço. CONTORNO = true volta ao desenho antigo.
-const CONTORNO = false;
+// O gato TEM contorno marrom. Em 2026-10-27 ele foi tirado por engano ("tirar as bordas" era do
+// quarto, não do gato) e voltou no mesmo dia. O modo sem contorno ficou pronto e testado:
+// CONTORNO = false troca a linha por uma sombrinha macia em cada parte do corpo.
+const CONTORNO = true;
 function silhueta(ctx, desenhar) {
   ctx.save();
   const m = ctx.getTransform(), k = Math.hypot(m.a, m.b);   // a sombra é em pixel de tela: acompanha a escala

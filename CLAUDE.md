@@ -19,9 +19,10 @@ Publicado em https://kevindustries-tech.github.io/pomodorocat/ — a Bianca usa 
 O nome que aparece é **Study Cat** (desde 2026-10-27). Repositório, endereço e chaves do
 `localStorage` continuam `pomodorocat`: trocar o endereço quebraria o app instalado no celular dela.
 
-O gato **não tem contorno** (pedido da Bianca, 2026-10-27): cada parte faz uma sombrinha macia
-(`CONTORNO` e `silhueta()` em `gato.js`). O quarto, os objetos e as roupinhas continuam com traço.
-O quarto **não tem moldura**: vai de ponta a ponta e colado no topo (`MOLDURA` em `quarto.js`).
+O gato **tem contorno** marrom — foi tirado por engano em 2026-10-27 e voltou no mesmo dia
+(`CONTORNO` em `gato.js`; o modo sem contorno ficou pronto, mas ela não quer).
+O quarto **não tem moldura** e é o **fundo da tela inteira**: o chão continua por trás do cartão do
+timer e dos botões, que ficam na frente (`MOLDURA` em `quarto.js`, `encaixar()` no `app.js`).
 
 **Sem build e sem bundler**: HTML + ES modules + Canvas 2D. Nenhuma imagem: o gato, o quarto e
 os móveis são desenhados em código, então cor, pelagem, pelo e roupinha são só parâmetros.

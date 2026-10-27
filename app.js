@@ -9,7 +9,7 @@ import { miniatura } from './quarto.js';
 import * as Som from './som.js';
 import { t, IDIOMAS, definirIdioma, detectarIdioma, nomeItem, nomePelagem, traduzirPagina } from './i18n.js';
 
-const VERSAO = '0.3.2';
+const VERSAO = '0.3.3';
 const $ = sel => document.querySelector(sel);
 const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const moeda = n => `<span class="m"><svg class="ic"><use href="#i-moeda"/></svg>${n}</span>`;
@@ -199,14 +199,19 @@ function mostrarAdocao() {
 // ---------- jogo ----------
 // O quarto estica para ocupar o espaço todo (pedido da Bianca): no mínimo 400 × 460 lógicos,
 // mais largo se sobrar largura, mais alto se sobrar altura.
+// O quarto cobre a tela toda e é o fundo (pedido da Bianca). A parte com o gato e os móveis
+// (desenho 400 × 460) ocupa do topo até o cartão do timer; dali para baixo é só chão, por trás
+// do cartão e dos botões. Mais largo ou mais alto que o desenho: a parede estica.
 function encaixar() {
-  const r = $('#palco').getBoundingClientRect();
-  if (r.width < 10 || r.height < 10) return;
-  const a = r.width / r.height;
+  const app = $('#app').getBoundingClientRect();
+  if (app.width < 10 || app.height < 10) return;
+  const visivel = Math.max(160, $('#cartao').getBoundingClientRect().top - app.top - 4);
+  const a = app.width / visivel;
   let wl = 400, hl = 460;
-  if (a >= 400 / 460) wl = Math.min(620, 460 * a); else hl = Math.min(680, 400 / a);
-  const e = Math.min(r.width / wl, r.height / hl);
-  cena.redimensionar(Math.floor(wl * e), Math.floor(hl * e), wl, hl);
+  if (a >= 400 / 460) wl = 460 * a; else hl = 400 / a;
+  const e = app.width / wl;                                   // hl * e = altura visível
+  const baixo = Math.max(0, (app.height - hl * e) / e);       // chão por trás dos botões
+  cena.redimensionar(Math.ceil(app.width), Math.ceil(app.height), wl, hl, baixo);
 }
 
 function iniciarJogo() {
@@ -214,7 +219,8 @@ function iniciarJogo() {
   $('#adocao').hidden = true; $('#app').hidden = false;
   cena = criarCena($('#tela'));
   encaixar();
-  new ResizeObserver(encaixar).observe($('#palco'));
+  const ro = new ResizeObserver(encaixar);                     // o cartão cresce com o alerta: reencaixa
+  ro.observe($('#app')); ro.observe($('#cartao'));
   E.atualizarSaude(s);
   render();
   requestAnimationFrame(quadro);

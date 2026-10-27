@@ -22,13 +22,14 @@ export function criarCena(canvas) {
   let proxCoracao = 5, proxFedor = 0;
 
   // larg × alt em pixels de CSS; wl × hl = tamanho lógico (no mínimo 400 × 460, o desenho original).
-  function redimensionar(larg, alt, wl = W, hl = H) {
+  // baixo = chão a mais embaixo do desenho, por trás do cartão e dos botões.
+  function redimensionar(larg, alt, wl = W, hl = H, baixo = 0) {
     dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     canvas.style.width = larg + 'px'; canvas.style.height = alt + 'px';
     canvas.width = fora.width = Math.round(larg * dpr);
     canvas.height = fora.height = Math.round(alt * dpr);
-    WL = wl; HL = hl; escala = larg / WL;
-    ext = { dx: (WL - W) / 2, dy: HL - H };
+    WL = wl; HL = hl + baixo; escala = larg / WL;
+    ext = { dx: (WL - W) / 2, dy: hl - H, baixo };
   }
 
   // ---------- partículas ----------
